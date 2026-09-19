@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Coaching Management Portal</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+  :root {
+    --primary: #1e3a8a;
+    --primary-light: #2563eb;
+    --secondary: #0f766e;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #0f172a;
+    --border: #cbd5e1;
+    --danger: #dc2626;
+    --success: #16a34a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
+
+  /* Header */
+  header {
+    background: var(--primary);
+    color: white;
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-title { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+  .sync-indicator { font-size: 0.75rem; background: #22c55e; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-weight: 600; }
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.15);
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+  }
+  .header-btn {
+    background: white;
+    color: var(--primary);
+    border: none;
+    padding: 0.3rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .logout-btn {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Login Overlay */
+  #login-modal, #pwd-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(15, 23, 42, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  #pwd-modal { display: none; }
+  .login-card {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 440px;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25);
+  }
+  .login-card h2 { color: var(--primary); margin-bottom: 0.3rem; font-size: 1.35rem; }
+  .login-tabs { display: flex; border-bottom: 2px solid var(--border); margin: 1.2rem 0; gap: 0.5rem; }
+  .login-tab-btn {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    background: none;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+  .login-tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+  /* Navigation */
+  nav {
+    display: flex;
+    overflow-x: auto;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 1rem;
+    position: sticky;
+    top: 55px;
+    z-index: 90;
+  }
+  nav button {
+    padding: 0.85rem 1.25rem;
+    border: none;
+    background: none;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+  }
+  nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+  /* Main Layout */
+  .container { max-width: 1050px; margin: 1.5rem auto; padding: 0 1rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+  
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+
+  /* Forms */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  label { font-size: 0.78rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.3rem; }
+  input, select, textarea {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.88rem;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--primary-light); }
+  .btn-submit {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-submit:hover { background: var(--primary-light); }
+  .btn-print {
+    background: #0f766e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-print:hover { background: #115e59; }
+  .btn-pwd {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  /* Tables */
+  .table-responsive { overflow-x: auto; margin-top: 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 0.7rem 0.9rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: #f1f5f9; color: #334155; font-weight: 600; }
+  tr:hover { background: #f8fafc; }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .badge-active, .badge-present, .badge-completed { background: #dcfce7; color: #15803d; }
+  .badge-inactive, .badge-absent { background: #fee2e2; color: #b91c1c; }
+  .badge-progress { background: #fef3c7; color: #b45309; }
+  .badge-subject { background: #e0e7ff; color: #3730a3; font-weight: 700; }
+
+  .btn-del {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* Profile Grid */
+  .profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+  .stat-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+  .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem; }
+  .stat-lbl { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Print Layout */
+  @media print {
+    body { background: white; color: black; padding: 0; }
+    header, nav, #login-modal, #pwd-modal, .admin-area, .btn-print, .btn-pwd, .search-box, .btn-del, .logout-btn, .admin-col, .no-print {
+      display: none !important;
+    }
+    .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    .card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+    #tab-profile { display: block !important; }
+    #tab-attendance, #tab-syllabus, #tab-exams, #tab-roster { display: none !important; }
+    .print-header { display: block !important; margin-bottom: 1.5rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; text-align: center; }
+    table { width: 100%; border: 1px solid #000; }
+    th, td { border: 1px solid #000; }
+  }
+  .print-header { display: none; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal">
+  <div class="login-card">
+    <h2>Academic Portal Login</h2>
+    <p style="font-size: 0.85rem; color: #64748b;">Live Cloud Synchronized System</p>
+    
+    <div class="login-tabs">
+      <button class="login-tab-btn active" onclick="switchLoginRole('official')">Official / Faculty</button>
+      <button class="login-tab-btn" onclick="switchLoginRole('student')">Student View</button>
+    </div>
+
+    <!-- Official Login -->
+    <div id="login-official-form">
+      <label>Official Password / PIN</label>
+      <input type="password" id="admin-pin" placeholder="Enter Official PIN" style="margin-bottom: 1rem;">
+      <button class="btn-submit" style="width: 100%;" onclick="loginOfficial()">Log In as Official</button>
+      <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; text-align: center;">Default Official PIN is <b>1234</b></p>
+    </div>
+
+    <!-- Student Login -->
+    <div id="login-student-form" style="display: none;">
+      <label>Select Student Name</label>
+      <select id="login-student-select" style="margin-bottom: 1rem;"></select>
+      <label>Registered Phone Number OR Personal Password</label>
+      <input type="password" id="login-student-cred" placeholder="Enter phone or your chosen password" style="margin-bottom: 1rem;">
+      <button class="btn-submit" style="width: 100%; background: var(--secondary);" onclick="loginStudent()">Access My Profile</button>
+      <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">Tip: If you haven't set a personal password yet, use your registered admission phone number.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div id="pwd-modal">
+  <div class="login-card">
+    <h2 id="pwd-modal-title">🔐 Change Password</h2>
+    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;" id="pwd-modal-desc">Set your new private password.</p>
+    
+    <div style="margin-bottom: 1rem;">
+      <label>Current Password / PIN / Phone</label>
+      <input type="password" id="pwd-current" placeholder="Verify current credential">
+    </div>
+    <div style="margin-bottom: 1rem;">
+      <label>New Password / PIN</label>
+      <input type="password" id="pwd-new" placeholder="Enter new secret password">
+    </div>
+    <div style="margin-bottom: 1.25rem;">
+      <label>Confirm New Password</label>
+      <input type="password" id="pwd-confirm" placeholder="Re-enter new password">
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="btn-submit" style="flex: 1;" onclick="processPasswordChange()">Save Password</button>
+      <button class="btn-submit" style="flex: 1; background: #64748b;" onclick="closePasswordModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="app-title">
+    <span>🎓 Competitive Exams Coaching Portal</span>
+    <span class="sync-indicator">● Cloud Live</span>
+  </div>
+  <div class="user-badge">
+    <span id="role-display">👤 Not Logged In</span>
+    <button class="header-btn" id="btn-change-admin-pin" onclick="openAdminPinModal()" style="display: none;">Change PIN</button>
+    <button class="header-btn logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<!-- NAVIGATION -->
+<nav>
+  <button id="nav-profile" class="active" onclick="showTab('tab-profile')">🔍 4. Student Profile</button>
+  <button id="nav-att" onclick="showTab('tab-attendance')">📅 1. Attendance</button>
+  <button id="nav-syl" onclick="showTab('tab-syllabus')">📚 2. Syllabus Progress</button>
+  <button id="nav-exam" onclick="showTab('tab-exams')">📊 3. Exam Dashboard</button>
+  <button id="nav-notice" onclick="showTab('tab-notice')">📢 6. Notice Board</button>
+  <button id="nav-roster" onclick="showTab('tab-roster')">👥 5. Batches & Roster</button>
+</nav>
+
+<div class="container">
+
+  <!-- PRINT HEADER -->
+  <div class="print-header">
+    <h2 style="font-size: 1.5rem; margin-bottom: 0.2rem;">STUDENT COMPREHENSIVE PERFORMANCE CARD</h2>
+    <p style="font-size: 0.85rem; color: #555;">Official Coaching & Academic Record</p>
+  </div>
+
+  <!-- SEGMENT 4: STUDENT PROFILE -->
+  <div id="tab-profile" class="section active">
+    <div class="card">
+      <div class="card-title">
+        <span>🔍 Individual Student Profile Report</span>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-pwd no-print" id="btn-change-student-pwd" onclick="openStudentPasswordModal()">🔑 Change My Password</button>
+          <button class="btn-print no-print" onclick="window.print()">🖨️ Print Student Profile</button>
+        </div>
+      </div>
+
+      <div class="search-box no-print" id="profile-search-container">
+        <select id="profile-select" onchange="renderStudentProfile()">
+          <option value="">-- Choose or Search Student --</option>
+        </select>
+      </div>
+
+      <div id="profile-details" style="display: none;">
+        <div style="background: #f1f5f9; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; flex-wrap: wrap;">
+          <div><b style="font-size: 1.1rem; color: var(--primary);" id="prof-name">--</b></div>
+          <div><b>Batch:</b> <span id="prof-batch">--</span> | <b>Medium:</b> <span id="prof-med">--</span></div>
+        </div>
+
+        <div class="profile-grid">
+          <div class="stat-card">
+            <div class="stat-lbl">Overall Attendance</div>
+            <div class="stat-val" id="prof-attendance">0%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Exam Average</div>
+            <div class="stat-val" id="prof-exam-avg">0%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Enrolled Status</div>
+            <div class="stat-val" id="prof-status" style="font-size: 1rem; margin-top: 0.5rem;">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Phone Number</div>
+            <div class="stat-val" id="prof-phone" style="font-size: 1rem; margin-top: 0.5rem;">--</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #475569;">
+          <b>Admission Date:</b> <span id="prof-adm"></span> | 
+          <b>Inactivity Reason / Notes:</b> <span id="prof-notes">None</span>
+        </div>
+
+        <h4 style="margin: 1rem 0 0.5rem 0;">Exam Performance Records</h4>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Exam Name</th>
+                <th>Subject</th>
+                <th>Marks Obtained</th>
+                <th>Full Marks</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody id="prof-exams-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="profile-empty" style="text-align: center; color: #94a3b8; padding: 2.5rem;" class="no-print">
+        Select a student from the menu to view or print their profile.
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGMENT 1: ATTENDANCE -->
+  <div id="tab-attendance" class="section">
+    <div class="card admin-area">
+      <div class="card-title">Mark Daily Attendance</div>
+      <form onsubmit="saveAttendance(event)">
+        <div class="form-grid">
+          <div>
+            <label>Date</label>
+            <input type="date" id="att-date" required>
+          </div>
+          <div>
+            <label>Batch</label>
+            <select id="att-batch" onchange="filterAttendanceStudents()" required>
+              <option value="Batch A">Batch A</option>
+              <option value="Batch B">Batch B</option>
+            </select>
+          </div>
+          <div>
+            <label>Student Name</label>
+            <select id="att-student" required></select>
+          </div>
+          <div>
+            <label>Attendance Status</label>
+            <select id="att-status" required>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Log Attendance</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Attendance Registry</span>
+        <select id="filter-att-batch" onchange="renderAttendanceTable()" style="width: auto; padding: 0.25rem;">
+          <option value="All">All Batches</option>
+          <option value="Batch A">Batch A</option>
+          <option value="Batch B">Batch B</option>
+        </select>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Batch</th>
+              <th>Student Name</th>
+              <th>Status</th>
+              <th>Month</th>
+              <th class="admin-col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="attendance-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGMENT 2: SYLLABUS -->
+  <div id="tab-syllabus" class="section">
+    <div class="card admin-area">
+      <div class="card-title">Log Subject Syllabus Progress</div>
+      <form onsubmit="saveSyllabus(event)">
+        <div class="form-grid">
+          <div>
+            <label>Date</label>
+            <input type="date" id="syl-date" required>
+          </div>
+          <div>
+            <label>Batch</label>
+            <select id="syl-batch" required>
+              <option value="Batch A">Batch A</option>
+              <option value="Batch B">Batch B</option>
+            </select>
+          </div>
+          <div>
+            <label>Subject Division</label>
+            <select id="syl-subject" required>
+              <option value="ENGLISH">ENGLISH</option>
+              <option value="MATH">MATH</option>
+              <option value="GI">GI (General Intelligence / Reasoning)</option>
+              <option value="HISTORY">HISTORY</option>
+              <option value="GEOGRAPHY">GEOGRAPHY</option>
+              <option value="PHYSICAL SCIENCE">PHYSICAL SCIENCE</option>
+              <option value="LIFE SCIENCE">LIFE SCIENCE</option>
+              <option value="ECONOMICS">ECONOMICS</option>
+              <option value="CONSTITUTION">CONSTITUTION</option>
+              <option value="GK">GK</option>
+              <option value="CA">CA (Current Affairs)</option>
+            </select>
+          </div>
+          <div>
+            <label>Topic Covered</label>
+            <input type="text" id="syl-topic" placeholder="e.g. Fundamental Rights / Percentage" required>
+          </div>
+          <div>
+            <label>Completion Status</label>
+            <select id="syl-status" required>
+              <option value="Completed">Completed</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label>Faculty Notes / Assigned Materials</label>
+          <textarea id="syl-notes" rows="2" placeholder="Worksheet given, reference chapters..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit">Add Syllabus Update</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Syllabus Timeline & Coverage</span>
+        <select id="filter-syl-subject" onchange="renderSyllabusTable()" style="width: auto; padding: 0.25rem;">
+          <option value="All">All Subjects</option>
+          <option value="ENGLISH">ENGLISH</option>
+          <option value="MATH">MATH</option>
+          <option value="GI">GI</option>
+          <option value="HISTORY">HISTORY</option>
+          <option value="GEOGRAPHY">GEOGRAPHY</option>
+          <option value="PHYSICAL SCIENCE">PHYSICAL SCIENCE</option>
+          <option value="LIFE SCIENCE">LIFE SCIENCE</option>
+          <option value="ECONOMICS">ECONOMICS</option>
+          <option value="CONSTITUTION">CONSTITUTION</option>
+          <option value="GK">GK</option>
+          <option value="CA">CA</option>
+        </select>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Batch</th>
+              <th>Subject</th>
+              <th>Topic</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th class="admin-col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="syllabus-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGMENT 3: EXAM DASHBOARD -->
+  <div id="tab-exams" class="section">
+    <div class="card admin-area">
+      <div class="card-title">Enter Student Exam Marks</div>
+      <form onsubmit="saveExam(event)">
+        <div class="form-grid">
+          <div>
+            <label>Exam Name</label>
+            <input type="text" id="exam-name" placeholder="e.g. Mock Test 1" required>
+          </div>
+          <div>
+            <label>Subject</label>
+            <select id="exam-subject" required>
+              <option value="ENGLISH">ENGLISH</option>
+              <option value="MATH">MATH</option>
+              <option value="GI">GI (General Intelligence)</option>
+              <option value="HISTORY">HISTORY</option>
+              <option value="GEOGRAPHY">GEOGRAPHY</option>
+              <option value="PHYSICAL SCIENCE">PHYSICAL SCIENCE</option>
+              <option value="LIFE SCIENCE">LIFE SCIENCE</option>
+              <option value="ECONOMICS">ECONOMICS</option>
+              <option value="CONSTITUTION">CONSTITUTION</option>
+              <option value="GK">GK</option>
+              <option value="CA">CA</option>
+              <option value="COMBINED MOCK">COMBINED MOCK</option>
+            </select>
+          </div>
+          <div>
+            <label>Batch</label>
+            <select id="exam-batch" onchange="filterExamStudents()" required>
+              <option value="Batch A">Batch A</option>
+              <option value="Batch B">Batch B</option>
+            </select>
+          </div>
+          <div>
+            <label>Student Name</label>
+            <select id="exam-student" required></select>
+          </div>
+          <div>
+            <label>Full Marks</label>
+            <input type="number" id="exam-full" value="50" required>
+          </div>
+          <div>
+            <label>Marks Obtained</label>
+            <input type="number" step="0.25" id="exam-obtained" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Submit Exam Score</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Exams Summary & Highest Score</div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Exam</th>
+              <th>Batch</th>
+              <th>Subject</th>
+              <th>Student Name</th>
+              <th>Marks</th>
+              <th>Full Marks</th>
+              <th>Percentage</th>
+              <th>Batch Top Score</th>
+              <th class="admin-col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="exam-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- SEGMENT 6: NOTICE BOARD -->
+  <div id="tab-notice" class="section">
+    <div class="card admin-area">
+      <div class="card-title">
+        <span>📢 Compose & Publish Notice</span>
+        <span class="admin-only-tag" style="background:#fef3c7; color:#92400e; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem;">Official Only</span>
+      </div>
+      <form onsubmit="publishNotice(event)">
+        <div class="form-grid">
+          <div style="grid-column: span 2;">
+            <label>Notice Headline / Title</label>
+            <input type="text" id="notice-title" placeholder="e.g. Special Mock Test on Sunday / Class Timing Change" required>
+          </div>
+          <div>
+            <label>Target Audience</label>
+            <select id="notice-target" required>
+              <option value="All Batches">All Batches</option>
+              <option value="Batch A">Batch A Only</option>
+              <option value="Batch B">Batch B Only</option>
+            </select>
+          </div>
+          <div>
+            <label>Priority / Tag</label>
+            <select id="notice-tag" required>
+              <option value="General">Normal / General</option>
+              <option value="Urgent">⚠️ Urgent Alert</option>
+              <option value="Exam">📝 Exam & Test Schedule</option>
+              <option value="Holiday">🌴 Holiday Notice</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label>Notice Content / Announcement</label>
+          <textarea id="notice-body" rows="3" placeholder="Type announcement details here..." required></textarea>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="submit" class="btn-submit" style="background: var(--primary);">📢 Publish to Live Notice Board</button>
+          <button type="button" class="btn-submit" style="background: #25D366; color: white;" onclick="broadcastToWhatsApp()">💬 Send Notice to WhatsApp Numbers</button>
+          <button type="button" class="btn-submit" style="background: #0284c7; color: white;" onclick="broadcastToSMS()">📱 Send via Default SMS App</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📢 Live Academy Notice Board</span>
+        <span id="notice-count-badge" class="badge badge-subject">0 Notices</span>
+      </div>
+      <div id="notice-list-container">
+        <!-- Rendered notices appear here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGMENT 5: BATCHES & ROSTER -->
+  <div id="tab-roster" class="section">
+    <div class="card admin-area">
+      <div class="card-title">Enroll New Student</div>
+      <form onsubmit="saveStudent(event)">
+        <div class="form-grid">
+          <div>
+            <label>Student Name</label>
+            <input type="text" id="rst-name" placeholder="Full name" required>
+          </div>
+          <div>
+            <label>Batch</label>
+            <select id="rst-batch" required>
+              <option value="Batch A">Batch A</option>
+              <option value="Batch B">Batch B</option>
+            </select>
+          </div>
+          <div>
+            <label>Phone Number</label>
+            <input type="tel" id="rst-phone" placeholder="10-digit number" required>
+          </div>
+          <div>
+            <label>Admission Date</label>
+            <input type="date" id="rst-date" required>
+          </div>
+          <div>
+            <label>Medium of Instruction</label>
+            <select id="rst-med" required>
+              <option value="Bengali">Bengali</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+          <div>
+            <label>Status</label>
+            <select id="rst-status" required>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label>Inactivity Reason / Comments (if inactive)</label>
+          <input type="text" id="rst-comment" placeholder="Optional notes...">
+        </div>
+        <button type="submit" class="btn-submit">Register Student</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Enrolled Student Directory</div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Batch</th>
+              <th>Student Name</th>
+              <th>Phone</th>
+              <th>Medium</th>
+              <th>Admission Date</th>
+              <th>Status</th>
+              <th>Comments</th>
+              <th class="admin-col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="roster-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// --- YOUR FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyD8-XRYgu51zF0mHOfSZ7M3boOVKJ9KIM4",
+  authDomain: "classroom-ca026.firebaseapp.com",
+  databaseURL: "https://classroom-ca026-default-rtdb.firebaseio.com",
+  projectId: "classroom-ca026",
+  storageBucket: "classroom-ca026.firebasestorage.app",
+  messagingSenderId: "835920397563",
+  appId: "1:835920397563:web:7079d60ee22f4361869c5e"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+
+let notices = [];
+
+// Realtime Listener for Notices
+db.ref('notices').on('value', snapshot => {
+  const data = snapshot.val();
+  notices = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
+  renderNoticeBoard();
+});
+
+function publishNotice(e) {
+  e.preventDefault();
+  const title = document.getElementById('notice-title').value.trim();
+  const target = document.getElementById('notice-target').value;
+  const tag = document.getElementById('notice-tag').value;
+  const body = document.getElementById('notice-body').value.trim();
+  const dateStr = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+
+  db.ref('notices').push({
+    title: title,
+    target: target,
+    tag: tag,
+    body: body,
+    date: dateStr,
+    timestamp: Date.now()
+  }).then(() => {
+    alert('Notice published live to all student devices!');
+    e.target.reset();
+  }).catch(err => {
+    alert('Error publishing notice: ' + err.message);
+  });
+}
+
+function renderNoticeBoard() {
+  const container = document.getElementById('notice-list-container');
+  const countBadge = document.getElementById('notice-count-badge');
+  if (!container) return;
+
+  // Filter for student if student is logged in
+  let visibleNotices = notices;
+  if (loggedInRole === 'student' && loggedInStudentObj) {
+    visibleNotices = notices.filter(n => n.target === 'All Batches' || n.target === loggedInStudentObj.batch);
+  }
+
+  countBadge.textContent = `${visibleNotices.length} Notices`;
+
+  if (visibleNotices.length === 0) {
+    container.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 2rem;">No notices published yet.</div>';
+    return;
+  }
+
+  container.innerHTML = visibleNotices.map(n => {
+    const isUrgent = n.tag === 'Urgent';
+    const tagBg = isUrgent ? '#fee2e2' : '#e0e7ff';
+    const tagCol = isUrgent ? '#b91c1c' : '#3730a3';
+    return `
+      <div style="border: 1px solid var(--border); border-left: 4px solid ${isUrgent ? 'var(--danger)' : 'var(--primary)'}; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #ffffff;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <span class="badge" style="background: ${tagBg}; color: ${tagCol}; margin-right: 0.5rem;">${n.tag}</span>
+            <span class="badge" style="background: #f1f5f9; color: #475569;">Audience: ${n.target}</span>
+            <h3 style="margin-top: 0.4rem; color: var(--text); font-size: 1.05rem;">${n.title}</h3>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <small style="color: #64748b; font-size: 0.75rem;">${n.date}</small>
+            ${loggedInRole === 'official' ? `<button class="btn-del" onclick="deleteNotice('${n.id}')">Delete</button>` : ''}
+          </div>
+        </div>
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.5; white-space: pre-wrap;">${n.body}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteNotice(id) {
+  if (confirm('Delete this notice from the notice board?')) {
+    db.ref('notices/' + id).remove();
+  }
+}
+
+// Broadcast to WhatsApp registered mobile numbers
+function broadcastToWhatsApp() {
+  const title = document.getElementById('notice-title').value.trim();
+  const body = document.getElementById('notice-body').value.trim();
+  const target = document.getElementById('notice-target').value;
+
+  if (!title || !body) {
+    alert('Please enter Notice Headline and Content first.');
+    return;
+  }
+
+  // Get recipient students
+  let recipients = students.filter(s => s.status === 'Active' && s.phone);
+  if (target !== 'All Batches') {
+    recipients = recipients.filter(s => s.batch === target);
+  }
+
+  if (recipients.length === 0) {
+    alert('No active students with registered phone numbers found in ' + target);
+    return;
+  }
+
+  const messageText = `📢 *NOTICE: ${title}*\n\n${body}\n\n- Academy Portal`;
+  const encodedMsg = encodeURIComponent(messageText);
+
+  const phoneList = recipients.map(s => `${s.name}: ${s.phone}`).join('\n');
+  const confirmMsg = `Prepare WhatsApp broadcast for ${recipients.length} student(s) in ${target}?\n\n${phoneList}`;
+
+  if (confirm(confirmMsg)) {
+    // Open WhatsApp Web with pre-filled message so official can send or forward to batch group/students
+    window.open(`https://api.whatsapp.com/send?text=${encodedMsg}`, '_blank');
+  }
+}
+
+// Broadcast via standard SMS URI to phone numbers
+function broadcastToSMS() {
+  const title = document.getElementById('notice-title').value.trim();
+  const body = document.getElementById('notice-body').value.trim();
+  const target = document.getElementById('notice-target').value;
+
+  if (!title || !body) {
+    alert('Please enter Notice Headline and Content first.');
+    return;
+  }
+
+  let recipients = students.filter(s => s.status === 'Active' && s.phone);
+  if (target !== 'All Batches') {
+    recipients = recipients.filter(s => s.batch === target);
+  }
+
+  if (recipients.length === 0) {
+    alert('No active students found in ' + target);
+    return;
+  }
+
+  const phones = recipients.map(s => s.phone.replace(/[^0-9]/g, '')).filter(p => p.length >= 10);
+  const messageText = `NOTICE: ${title} - ${body}`;
+  const encodedMsg = encodeURIComponent(messageText);
+
+  // Opens native phone SMS messenger with numbers pre-populated
+  const phoneDelim = navigator.userAgent.match(/iPhone|iPad|iPod/i) ? '&' : '?';
+  const smsUrl = `sms:${phones.join(',')}?body=${encodedMsg}`;
+  window.open(smsUrl, '_blank');
+}
+
+// --- LIVE STATE ARRAYS ---
+let students = [];
+let attendance = [];
+let syllabus = [];
+let exams = [];
+let adminPin = '1234';
+
+// --- REALTIME LISTENERS ---
+db.ref('settings/adminPin').on('value', snapshot => {
+  const val = snapshot.val();
+  if (val) adminPin = val.toString();
+});
+
+db.ref('students').on('value', snapshot => {
+  const data = snapshot.val();
+  students = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+  if (students.length === 0) {
+    db.ref('students').push({
+      batch: 'Batch A', name: 'Sample Student', phone: '9876543210',
+      password: '', date: '2026-09-01', medium: 'English', status: 'Active', comment: 'Specimen Student'
+    });
+  }
+  updateDropdowns();
+  renderRosterTable();
+  if (loggedInRole === 'student') renderStudentProfile();
+});
+
+db.ref('attendance').on('value', snapshot => {
+  const data = snapshot.val();
+  attendance = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+  if (attendance.length === 0 && students.length > 0) {
+    db.ref('attendance').push({
+      date: '2026-09-01', batch: 'Batch A', name: 'Sample Student', status: 'Present', month: 'Sep-2026'
+    });
+  }
+  renderAttendanceTable();
+  if (loggedInRole === 'student' || document.getElementById('profile-select').value) renderStudentProfile();
+});
+
+db.ref('syllabus').on('value', snapshot => {
+  const data = snapshot.val();
+  syllabus = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+  if (syllabus.length === 0) {
+    db.ref('syllabus').push({
+      date: '2026-09-01', batch: 'Batch A', subject: 'CONSTITUTION',
+      topic: 'Preamble & Fundamental Rights', status: 'Completed', notes: 'Specimen Entry'
+    });
+  }
+  renderSyllabusTable();
+});
+
+db.ref('exams').on('value', snapshot => {
+  const data = snapshot.val();
+  exams = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+  if (exams.length === 0 && students.length > 0) {
+    db.ref('exams').push({
+      exam: 'Specimen Test', batch: 'Batch A', subject: 'CONSTITUTION',
+      student: 'Sample Student', full: 50, marks: 45
+    });
+  }
+  renderExamTable();
+  if (loggedInRole === 'student' || document.getElementById('profile-select').value) renderStudentProfile();
+});
+
+// --- AUTHENTICATION STATE ---
+let loggedInRole = null;
+let loggedInStudentObj = null;
+
+function switchLoginRole(role) {
+  document.querySelectorAll('.login-tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (role === 'official') {
+    document.getElementById('login-official-form').style.display = 'block';
+    document.getElementById('login-student-form').style.display = 'none';
+  } else {
+    document.getElementById('login-official-form').style.display = 'none';
+    document.getElementById('login-student-form').style.display = 'block';
+    populateStudentLoginDropdown();
+  }
+}
+
+function populateStudentLoginDropdown() {
+  const sel = document.getElementById('login-student-select');
+  sel.innerHTML = '<option value="">-- Choose Your Name --</option>';
+  students.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.batch})`;
+    sel.appendChild(opt);
+  });
+}
+
+function loginOfficial() {
+  const pin = document.getElementById('admin-pin').value.trim();
+  if (pin === adminPin) {
+    loggedInRole = 'official';
+    loggedInStudentObj = null;
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('role-display').innerHTML = `👤 Mode: <b>Official (Admin)</b>`;
+    document.getElementById('btn-change-admin-pin').style.display = 'inline-block';
+    applyPermissions();
+  } else {
+    alert('Incorrect PIN. Please re-enter.');
+  }
+}
+
+function loginStudent() {
+  const sId = document.getElementById('login-student-select').value;
+  const inputCred = document.getElementById('login-student-cred').value.trim();
+  if (!sId) { alert('Please select your name from the list.'); return; }
+  
+  const student = students.find(s => s.id === sId);
+  if (!student) return;
+
+  // Check against personal password (if set) OR default phone number
+  const validPhone = student.phone && student.phone.trim() === inputCred;
+  const validPwd = student.password && student.password.trim() === inputCred;
+
+  if (validPhone || validPwd) {
+    loggedInRole = 'student';
+    loggedInStudentObj = student;
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('role-display').innerHTML = `👤 Logged in: <b>${student.name}</b>`;
+    document.getElementById('btn-change-admin-pin').style.display = 'none';
+    applyPermissions();
+    document.getElementById('profile-select').value = student.name;
+    renderStudentProfile();
+  } else {
+    alert('Credential incorrect. Please enter your chosen password or registered admission phone number.');
+  }
+}
+
+function logout() {
+  loggedInRole = null;
+  loggedInStudentObj = null;
+  document.getElementById('login-modal').style.display = 'flex';
+  document.getElementById('admin-pin').value = '';
+  document.getElementById('login-student-cred').value = '';
+  document.getElementById('role-display').innerHTML = '👤 Not Logged In';
+  document.getElementById('btn-change-admin-pin').style.display = 'none';
+}
+
+function applyPermissions() {
+  const isOfficial = loggedInRole === 'official';
+  document.querySelectorAll('.admin-area').forEach(el => el.style.display = isOfficial ? 'block' : 'none');
+  document.querySelectorAll('.admin-col').forEach(el => el.style.display = isOfficial ? 'table-cell' : 'none');
+  document.querySelectorAll('.admin-cell').forEach(el => el.style.display = isOfficial ? 'table-cell' : 'none');
+  
+  const searchBox = document.getElementById('profile-search-container');
+  const rosterNav = document.getElementById('nav-roster');
+  const studentPwdBtn = document.getElementById('btn-change-student-pwd');
+  
+  if (isOfficial) {
+    searchBox.style.display = 'block';
+    rosterNav.style.display = 'inline-block';
+    if (studentPwdBtn) studentPwdBtn.style.display = 'none';
+  } else {
+    searchBox.style.display = 'none';
+    rosterNav.style.display = 'none';
+    if (studentPwdBtn) studentPwdBtn.style.display = 'inline-block';
+    showTab('tab-profile');
+  }
+}
+
+function showTab(tabId) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('nav button')).find(b => b.getAttribute('onclick').includes(tabId));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+}
+
+// --- PASSWORD / PIN CHANGE SYSTEM ---
+let changingTarget = 'student'; // 'student' or 'admin'
+
+function openStudentPasswordModal() {
+  changingTarget = 'student';
+  document.getElementById('pwd-modal-title').textContent = '🔑 Change Student Password';
+  document.getElementById('pwd-modal-desc').textContent = `Set a new private login password for ${loggedInStudentObj.name}.`;
+  document.getElementById('pwd-current').placeholder = 'Current password or registered phone';
+  document.getElementById('pwd-current').value = '';
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  document.getElementById('pwd-modal').style.display = 'flex';
+}
+
+function openAdminPinModal() {
+  changingTarget = 'admin';
+  document.getElementById('pwd-modal-title').textContent = '🔐 Change Official Master PIN';
+  document.getElementById('pwd-modal-desc').textContent = 'Change the official password required for full administrative access.';
+  document.getElementById('pwd-current').placeholder = 'Enter current PIN';
+  document.getElementById('pwd-current').value = '';
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  document.getElementById('pwd-modal').style.display = 'flex';
+}
+
+function closePasswordModal() {
+  document.getElementById('pwd-modal').style.display = 'none';
+}
+
+function processPasswordChange() {
+  const currentVal = document.getElementById('pwd-current').value.trim();
+  const newVal = document.getElementById('pwd-new').value.trim();
+  const confirmVal = document.getElementById('pwd-confirm').value.trim();
+
+  if (!newVal || !confirmVal) {
+    alert('Please enter and confirm your new password.');
+    return;
+  }
+  if (newVal !== confirmVal) {
+    alert('New passwords do not match. Please re-enter.');
+    return;
+  }
+
+  if (changingTarget === 'student') {
+    if (!loggedInStudentObj) return;
+    // Verify current credential
+    const validCurrent = (loggedInStudentObj.password && loggedInStudentObj.password === currentVal) ||
+                         (loggedInStudentObj.phone === currentVal);
+    if (!validCurrent) {
+      alert('Current password or phone number is incorrect.');
+      return;
+    }
+
+    // Save to Firebase under this student's node
+    db.ref('students/' + loggedInStudentObj.id).update({
+      password: newVal
+    }).then(() => {
+      loggedInStudentObj.password = newVal;
+      alert('Password changed successfully! You can now log in using your new private password.');
+      closePasswordModal();
+    }).catch(err => {
+      alert('Error updating password: ' + err.message);
+    });
+
+  } else if (changingTarget === 'admin') {
+    // Verify current admin PIN
+    if (currentVal !== adminPin) {
+      alert('Current official PIN is incorrect.');
+      return;
+    }
+
+    // Save new PIN to cloud
+    db.ref('settings/adminPin').set(newVal).then(() => {
+      adminPin = newVal;
+      alert('Official Master PIN updated successfully on cloud!');
+      closePasswordModal();
+    }).catch(err => {
+      alert('Error updating PIN: ' + err.message);
+    });
+  }
+}
+
+// --- DROPDOWNS & RENDERING ---
+function updateDropdowns() {
+  const profSelect = document.getElementById('profile-select');
+  profSelect.innerHTML = '<option value="">-- Choose or Search Student --</option>';
+  students.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.name;
+    opt.textContent = `${s.name} (${s.batch})`;
+    profSelect.appendChild(opt);
+  });
+  filterAttendanceStudents();
+  filterExamStudents();
+  populateStudentLoginDropdown();
+}
+
+function filterAttendanceStudents() {
+  const batch = document.getElementById('att-batch').value;
+  const select = document.getElementById('att-student');
+  select.innerHTML = '';
+  const filtered = students.filter(s => s.batch === batch && s.status === 'Active');
+  if (filtered.length === 0) {
+    select.innerHTML = '<option value="">No active students</option>';
+  } else {
+    filtered.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name;
+      opt.textContent = s.name;
+      select.appendChild(opt);
+    });
+  }
+}
+
+function filterExamStudents() {
+  const batch = document.getElementById('exam-batch').value;
+  const select = document.getElementById('exam-student');
+  select.innerHTML = '';
+  const filtered = students.filter(s => s.batch === batch);
+  if (filtered.length === 0) {
+    select.innerHTML = '<option value="">No students in batch</option>';
+  } else {
+    filtered.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name;
+      opt.textContent = s.name;
+      select.appendChild(opt);
+    });
+  }
+}
+
+function renderRosterTable() {
+  const tbody = document.getElementById('roster-table-body');
+  tbody.innerHTML = '';
+  students.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${s.batch}</b></td>
+      <td>${s.name}</td>
+      <td>${s.phone}</td>
+      <td>${s.medium}</td>
+      <td>${s.date}</td>
+      <td><span class="badge ${s.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${s.status}</span></td>
+      <td>${s.comment || '-'}</td>
+      <td class="admin-cell"><button class="btn-del" onclick="deleteStudent('${s.id}')">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  applyPermissions();
+}
+
+function renderAttendanceTable() {
+  const filter = document.getElementById('filter-att-batch').value;
+  const tbody = document.getElementById('attendance-table-body');
+  tbody.innerHTML = '';
+  const filtered = filter === 'All' ? attendance : attendance.filter(a => a.batch === filter);
+  filtered.forEach(a => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.date}</td>
+      <td>${a.batch}</td>
+      <td>${a.name}</td>
+      <td><span class="badge ${a.status === 'Present' ? 'badge-present' : 'badge-absent'}">${a.status}</span></td>
+      <td>${a.month}</td>
+      <td class="admin-cell"><button class="btn-del" onclick="deleteAttendance('${a.id}')">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  applyPermissions();
+}
+
+function renderSyllabusTable() {
+  const filterSub = document.getElementById('filter-syl-subject').value;
+  const tbody = document.getElementById('syllabus-table-body');
+  tbody.innerHTML = '';
+  const filtered = filterSub === 'All' ? syllabus : syllabus.filter(s => s.subject === filterSub);
+  filtered.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.date}</td>
+      <td><b>${s.batch}</b></td>
+      <td><span class="badge badge-subject">${s.subject}</span></td>
+      <td>${s.topic}</td>
+      <td><span class="badge ${s.status === 'Completed' ? 'badge-completed' : 'badge-progress'}">${s.status}</span></td>
+      <td>${s.notes || '-'}</td>
+      <td class="admin-cell"><button class="btn-del" onclick="deleteSyllabus('${s.id}')">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  applyPermissions();
+}
+
+function renderExamTable() {
+  const tbody = document.getElementById('exam-table-body');
+  tbody.innerHTML = '';
+  exams.forEach(e => {
+    const batchExams = exams.filter(item => item.exam === e.exam && item.batch === e.batch);
+    const topScore = Math.max(...batchExams.map(item => item.marks));
+    const pct = ((e.marks / e.full) * 100).toFixed(1) + '%';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${e.exam}</td>
+      <td>${e.batch}</td>
+      <td><span class="badge badge-subject">${e.subject}</span></td>
+      <td><b>${e.student}</b></td>
+      <td>${e.marks}</td>
+      <td>${e.full}</td>
+      <td><b>${pct}</b></td>
+      <td><span class="badge badge-completed">${topScore}</span></td>
+      <td class="admin-cell"><button class="btn-del" onclick="deleteExam('${e.id}')">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  applyPermissions();
+}
+
+function renderStudentProfile() {
+  const name = loggedInRole === 'student' && loggedInStudentObj ? loggedInStudentObj.name : document.getElementById('profile-select').value;
+  const detailsDiv = document.getElementById('profile-details');
+  const emptyDiv = document.getElementById('profile-empty');
+  
+  if (!name) {
+    detailsDiv.style.display = 'none';
+    emptyDiv.style.display = 'block';
+    return;
+  }
+  
+  const student = students.find(s => s.name === name);
+  if (!student) {
+    detailsDiv.style.display = 'none';
+    emptyDiv.style.display = 'block';
+    return;
+  }
+  
+  detailsDiv.style.display = 'block';
+  emptyDiv.style.display = 'none';
+  
+  document.getElementById('prof-name').textContent = student.name;
+  document.getElementById('prof-batch').textContent = student.batch;
+  document.getElementById('prof-med').textContent = student.medium;
+  document.getElementById('prof-status').innerHTML = `<span class="badge ${student.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${student.status}</span>`;
+  document.getElementById('prof-phone').textContent = student.phone;
+  document.getElementById('prof-adm').textContent = student.date;
+  document.getElementById('prof-notes').textContent = student.comment || 'None';
+
+  // Attendance
+  const attRecords = attendance.filter(a => a.name === name);
+  if (attRecords.length > 0) {
+    const presentCount = attRecords.filter(a => a.status === 'Present').length;
+    const attPct = ((presentCount / attRecords.length) * 100).toFixed(0);
+    document.getElementById('prof-attendance').textContent = `${attPct}% (${presentCount}/${attRecords.length})`;
+  } else {
+    document.getElementById('prof-attendance').textContent = 'No records';
+  }
+
+  // Exams
+  const studExams = exams.filter(e => e.student === name);
+  const examBody = document.getElementById('prof-exams-body');
+  examBody.innerHTML = '';
+  if (studExams.length > 0) {
+    let totalPct = 0;
+    studExams.forEach(e => {
+      const pct = (e.marks / e.full) * 100;
+      totalPct += pct;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${e.exam}</td>
+        <td><span class="badge badge-subject">${e.subject}</span></td>
+        <td><b>${e.marks}</b></td>
+        <td>${e.full}</td>
+        <td>${pct.toFixed(1)}%</td>
+      `;
+      examBody.appendChild(tr);
+    });
+    document.getElementById('prof-exam-avg').textContent = `${(totalPct / studExams.length).toFixed(1)}%`;
+  } else {
+    examBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No exam records found</td></tr>';
+    document.getElementById('prof-exam-avg').textContent = 'N/A';
+  }
+}
+
+// --- CLOUD WRITE ACTIONS ---
+function saveStudent(e) {
+  e.preventDefault();
+  db.ref('students').push({
+    name: document.getElementById('rst-name').value.trim(),
+    batch: document.getElementById('rst-batch').value,
+    phone: document.getElementById('rst-phone').value.trim(),
+    password: '',
+    date: document.getElementById('rst-date').value,
+    medium: document.getElementById('rst-med').value,
+    status: document.getElementById('rst-status').value,
+    comment: document.getElementById('rst-comment').value.trim()
+  });
+  e.target.reset();
+  alert('Student registered to cloud!');
+}
+
+function saveAttendance(e) {
+  e.preventDefault();
+  const dateVal = document.getElementById('att-date').value;
+  const d = new Date(dateVal);
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthStr = `${monthNames[d.getMonth()]}-${d.getFullYear()}`;
+  
+  db.ref('attendance').push({
+    date: dateVal,
+    batch: document.getElementById('att-batch').value,
+    name: document.getElementById('att-student').value,
+    status: document.getElementById('att-status').value,
+    month: monthStr
+  });
+  alert('Attendance synced to cloud!');
+}
+
+function saveSyllabus(e) {
+  e.preventDefault();
+  db.ref('syllabus').push({
+    date: document.getElementById('syl-date').value,
+    batch: document.getElementById('syl-batch').value,
+    subject: document.getElementById('syl-subject').value,
+    topic: document.getElementById('syl-topic').value.trim(),
+    status: document.getElementById('syl-status').value,
+    notes: document.getElementById('syl-notes').value.trim()
+  });
+  e.target.reset();
+  alert('Syllabus update synced!');
+}
+
+function saveExam(e) {
+  e.preventDefault();
+  db.ref('exams').push({
+    exam: document.getElementById('exam-name').value.trim(),
+    batch: document.getElementById('exam-batch').value,
+    subject: document.getElementById('exam-subject').value,
+    student: document.getElementById('exam-student').value,
+    full: parseFloat(document.getElementById('exam-full').value),
+    marks: parseFloat(document.getElementById('exam-obtained').value)
+  });
+  e.target.reset();
+  alert('Exam score synced!');
+}
+
+// --- CLOUD DELETE ACTIONS ---
+function deleteStudent(id) {
+  if (confirm('Delete this student entry from cloud database?')) {
+    db.ref('students/' + id).remove();
+  }
+}
+function deleteAttendance(id) {
+  if (confirm('Delete this attendance entry from cloud database?')) {
+    db.ref('attendance/' + id).remove();
+  }
+}
+function deleteSyllabus(id) {
+  if (confirm('Delete this syllabus record from cloud database?')) {
+    db.ref('syllabus/' + id).remove();
+  }
+}
+function deleteExam(id) {
+  if (confirm('Delete this exam mark from cloud database?')) {
+    db.ref('exams/' + id).remove();
+  }
+}
+
+// Set default dates to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('att-date').value = today;
+document.getElementById('syl-date').value = today;
+document.getElementById('rst-date').value = today;
+</script>
+
+</body>
+</html>
