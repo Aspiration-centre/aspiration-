@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Aspiration Centre | Academic Portal</title>
+<!-- App Icon & Favicon Support using logo.png -->
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -45,16 +49,13 @@
     z-index: 100;
   }
   .app-branding { display: flex; align-items: center; gap: 0.6rem; }
-  .app-logo {
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    backdrop-filter: blur(4px);
+  .app-branding img {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    object-fit: contain;
+    background: #ffffff;
+    padding: 2px;
   }
   .app-title-text { display: flex; flex-direction: column; }
   .app-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.2px; line-height: 1.2; }
@@ -405,7 +406,7 @@
 <div id="login-modal">
   <div class="login-card">
     <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.2rem;">
-      <span style="font-size: 1.6rem;">🎓</span>
+      <img src="logo.png" alt="Aspiration Centre Logo" style="width: 42px; height: 42px; border-radius: 8px; object-fit: contain;">
       <h2>Aspiration Centre</h2>
     </div>
     <p style="font-size: 0.85rem; color: var(--muted);">Live Cloud Synchronized Academic Portal</p>
@@ -415,12 +416,16 @@
       <button class="login-tab-btn" onclick="switchLoginRole('student')">Student View</button>
     </div>
 
-    <!-- Official Login -->
+    <!-- Official Login (Two-Tier Authorized Access) -->
     <div id="login-official-form">
+      <label>Authorized Employer Code</label>
+      <input type="text" id="employer-code" placeholder="Enter Employer / Faculty Code" style="margin-bottom: 0.85rem; text-transform: uppercase;">
+
       <label>Official Master PIN</label>
-      <input type="password" id="admin-pin" placeholder="Enter PIN (Default: 1234)" style="margin-bottom: 1rem;">
-      <button class="btn-submit" style="width: 100%; justify-content: center;" onclick="loginOfficial()">Log In as Official</button>
-      <p style="font-size: 0.74rem; color: var(--muted); margin-top: 0.6rem; text-align: center;">Default PIN is <b>1234</b> (changeable inside)</p>
+      <input type="password" id="admin-pin" placeholder="Enter Official PIN (Default: 1234)" style="margin-bottom: 1rem;">
+      
+      <button class="btn-submit" style="width: 100%; justify-content: center;" onclick="loginOfficial()">Verify & Enter Portal</button>
+      <p style="font-size: 0.74rem; color: var(--muted); margin-top: 0.6rem; text-align: center;">Default Code is <b>ASP-ADMIN-2026</b> | PIN is <b>1234</b></p>
     </div>
 
     <!-- Student Login -->
@@ -464,7 +469,7 @@
 <!-- HEADER -->
 <header>
   <div class="app-branding">
-    <div class="app-logo">🏛️</div>
+    <img src="logo.png" alt="Aspiration Centre Logo">
     <div class="app-title-text">
       <span class="app-title">Aspiration Centre</span>
       <span class="app-sub">● Cloud Connected & Synced</span>
@@ -1015,6 +1020,9 @@ let exams = [];
 let notices = [];
 let adminPin = '1234';
 
+// MASTER EMPLOYER AUTHORIZATION CODE
+const MASTER_EMPLOYER_CODE = "ASP-ADMIN-2026";
+
 // Subject Color Tagging Helper
 function getSubjectBadge(subject) {
   if (!subject) return '<span class="badge sub-default">-</span>';
@@ -1118,17 +1126,25 @@ function populateStudentLoginDropdown() {
 }
 
 function loginOfficial() {
-  const pin = document.getElementById('admin-pin').value.trim();
-  if (pin === adminPin) {
-    loggedInRole = 'official';
-    loggedInStudentObj = null;
-    document.getElementById('login-modal').style.display = 'none';
-    document.getElementById('role-display').innerHTML = `👤 <b>Official</b>`;
-    document.getElementById('btn-change-admin-pin').style.display = 'inline-block';
-    applyPermissions();
-  } else {
-    alert('Incorrect PIN. Please re-enter.');
+  const enteredCode = (document.getElementById('employer-code')?.value || '').trim().toUpperCase();
+  const enteredPin = (document.getElementById('admin-pin')?.value || '').trim();
+
+  if (enteredCode !== MASTER_EMPLOYER_CODE) {
+    alert('Access Denied: Invalid Employer / Faculty Authorization Code.');
+    return;
   }
+
+  if (enteredPin !== adminPin) {
+    alert('Access Denied: Incorrect Master PIN.');
+    return;
+  }
+
+  loggedInRole = 'official';
+  loggedInStudentObj = null;
+  document.getElementById('login-modal').style.display = 'none';
+  document.getElementById('role-display').innerHTML = `👤 <b>Official (Faculty)</b>`;
+  document.getElementById('btn-change-admin-pin').style.display = 'inline-block';
+  applyPermissions();
 }
 
 function loginStudent() {
@@ -1160,6 +1176,8 @@ function logout() {
   loggedInRole = null;
   loggedInStudentObj = null;
   document.getElementById('login-modal').style.display = 'flex';
+  const empField = document.getElementById('employer-code');
+  if (empField) empField.value = '';
   document.getElementById('admin-pin').value = '';
   document.getElementById('login-student-cred').value = '';
   document.getElementById('role-display').innerHTML = '👤 Guest';
@@ -1692,4 +1710,4 @@ document.getElementById('rst-date').value = today;
 </script>
 
 </body>
-    </html>
+</html>
