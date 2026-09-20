@@ -170,7 +170,7 @@
     background: white;
     border-radius: 18px;
     width: 92%;
-    max-width: 420px;
+    max-width: 440px;
     padding: 2rem;
     box-shadow: var(--shadow-lg);
     border: 1px solid rgba(255,255,255,0.8);
@@ -196,7 +196,7 @@
   }
 
   /* Layout Container */
-  .container { max-width: 1050px; margin: 1.25rem auto; padding: 0 1rem; }
+  .container { max-width: 1080px; margin: 1.25rem auto; padding: 0 1rem; }
   .section { display: none; }
   .section.active { display: block; animation: fadeIn 0.2s ease-in-out; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
@@ -279,18 +279,9 @@
   }
   .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
 
-  .btn-excel {
-    background: #ecfdf5;
-    color: #065f46;
-    border: 1.5px solid #a7f3d0;
-  }
+  .btn-excel { background: #ecfdf5; color: #065f46; border: 1.5px solid #a7f3d0; }
   .btn-excel:hover { background: #d1fae5; }
-
-  .btn-print {
-    background: #f0fdf4;
-    color: #166534;
-    border: 1.5px solid #bbf7d0;
-  }
+  .btn-print { background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; }
 
   .btn-del {
     background: #fef2f2;
@@ -335,10 +326,9 @@
   .badge-active, .badge-present, .badge-completed { background: #dcfce7; color: #166534; }
   .badge-inactive, .badge-absent { background: #fee2e2; color: #991b1b; }
   .badge-progress { background: #fef3c7; color: #92400e; }
-
-  /* Class Mode Badges */
   .badge-offline { background: #fef3c7; color: #92400e; }
   .badge-online { background: #e0f2fe; color: #0369a1; }
+  .badge-bday { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; }
 
   /* Score Tints */
   .score-high { background: #dcfce7; color: #15803d; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 6px; }
@@ -372,7 +362,6 @@
   .stat-lbl { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-top: 0.2rem; }
 
-  /* Visual Progress Bar */
   .progress-bar-container {
     width: 100%;
     height: 9px;
@@ -389,6 +378,20 @@
     width: 0%;
   }
 
+  /* Birthday Banner Alert */
+  .bday-banner {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+    border: 1.5px solid #f472b6;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
   /* Print Styles */
   @media print {
     body { background: white; color: black; padding: 0; }
@@ -396,7 +399,7 @@
     .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
     .card { border: none !important; box-shadow: none !important; padding: 0 !important; }
     #tab-profile { display: block !important; }
-    #tab-attendance, #tab-syllabus, #tab-exams, #tab-roster, #tab-notice { display: none !important; }
+    #tab-attendance, #tab-syllabus, #tab-exams, #tab-roster, #tab-notice, #tab-faculty { display: none !important; }
     .print-header { display: block !important; margin-bottom: 1.5rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; text-align: center; }
     table { width: 100%; border: 1px solid #000; }
     th, td { border: 1px solid #000; }
@@ -420,16 +423,19 @@
       <button class="login-tab-btn" onclick="switchLoginRole('student')">Student View</button>
     </div>
 
-    <!-- Official Login (Two-Tier Authorized Access) -->
+    <!-- Official Login (3-Tier Security: Employer Code + Master PIN + Registered Phone) -->
     <div id="login-official-form">
       <label>Authorized Employer Code</label>
-      <input type="text" id="employer-code" placeholder="Enter Employer / Faculty Code" style="margin-bottom: 0.85rem; text-transform: uppercase;">
+      <input type="text" id="employer-code" placeholder="e.g. ASP-ADMIN-2026" style="margin-bottom: 0.85rem; text-transform: uppercase;">
 
       <label>Official Master PIN</label>
-      <input type="password" id="admin-pin" placeholder="Enter Official PIN (Default: 1234)" style="margin-bottom: 1rem;">
+      <input type="password" id="admin-pin" placeholder="Enter PIN (Default: 1234)" style="margin-bottom: 0.85rem;">
       
+      <label>Registered Official / Faculty Phone No.</label>
+      <input type="tel" id="admin-phone" placeholder="Enter 10-digit mobile number" style="margin-bottom: 1.1rem;">
+
       <button class="btn-submit" style="width: 100%; justify-content: center;" onclick="loginOfficial()">Verify & Enter Portal</button>
-      <p style="font-size: 0.74rem; color: var(--muted); margin-top: 0.6rem; text-align: center;">Default Code is <b>ASP-ADMIN-2026</b> | PIN is <b>1234</b></p>
+      <p style="font-size: 0.74rem; color: var(--muted); margin-top: 0.6rem; text-align: center;">Phone number is recorded on each authorized entry.</p>
     </div>
 
     <!-- Student Login -->
@@ -439,7 +445,7 @@
       <label>Phone Number OR Personal Password</label>
       <input type="password" id="login-student-cred" placeholder="Registered phone or chosen password" style="margin-bottom: 1rem;">
       <button class="btn-submit" style="width: 100%; justify-content: center; background: var(--secondary);" onclick="loginStudent()">Access My Dashboard</button>
-      <p style="font-size: 0.74rem; color: var(--muted); margin-top: 0.5rem;">Default initial password is your admission phone number.</p>
+      <p style="font-size: 0.74rem; color: var(--muted); margin-top: 0.5rem;">Default initial password is your registered admission phone number.</p>
     </div>
   </div>
 </div>
@@ -494,6 +500,7 @@
   <button id="nav-exam" onclick="showTab('tab-exams')">📊 3. Exam Dashboard</button>
   <button id="nav-notice" onclick="showTab('tab-notice')">📢 6. Notice Board</button>
   <button id="nav-roster" onclick="showTab('tab-roster')">👥 5. Batches & Roster</button>
+  <button id="nav-faculty" onclick="showTab('tab-faculty')" style="display: none;">👔 7. Faculty Registry</button>
 </nav>
 
 <!-- MOBILE BOTTOM DOCK -->
@@ -516,9 +523,15 @@
   <button class="dock-item" id="dock-roster" onclick="showTab('tab-roster')">
     <span class="dock-icon">👥</span>Roster
   </button>
+  <button class="dock-item" id="dock-faculty" onclick="showTab('tab-faculty')" style="display: none;">
+    <span class="dock-icon">👔</span>Faculty
+  </button>
 </div>
 
 <div class="container">
+
+  <!-- AUTOMATED BIRTHDAY NOTIFICATION BANNER (Triggered Daily at 10:00 AM) -->
+  <div id="birthday-banner-container" style="display: none;"></div>
 
   <!-- PRINT HEADER -->
   <div class="print-header">
@@ -572,8 +585,8 @@
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-lbl">Enrollment Status</div>
-            <div class="stat-val" id="prof-status" style="font-size: 1.1rem; margin-top: 0.4rem;">--</div>
+            <div class="stat-lbl">Date of Birth</div>
+            <div class="stat-val" id="prof-dob" style="font-size: 1.1rem; margin-top: 0.4rem; color: #db2777;">--</div>
           </div>
           <div class="stat-card">
             <div class="stat-lbl">Registered Phone</div>
@@ -583,6 +596,7 @@
 
         <div style="margin-bottom: 1.1rem; font-size: 0.85rem; color: #475569; background: #ffffff; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 8px;">
           <b>Admission Date:</b> <span id="prof-adm"></span> | 
+          <b>Status:</b> <span id="prof-status"></span> |
           <b>Notes / Remarks:</b> <span id="prof-notes">None</span>
         </div>
 
@@ -610,7 +624,7 @@
     </div>
   </div>
 
-  <!-- SEGMENT 1: ATTENDANCE (WITH OFFLINE / ONLINE CLASS MODE) -->
+  <!-- SEGMENT 1: ATTENDANCE (OFFLINE / ONLINE) -->
   <div id="tab-attendance" class="section">
     <div class="card admin-area">
       <div class="card-title">Mark Daily Attendance</div>
@@ -880,7 +894,7 @@
     </div>
   </div>
 
-  <!-- SEGMENT 6: NOTICE BOARD -->
+  <!-- SEGMENT 6: NOTICE BOARD (NOTIFY STUDENTS & FACULTY) -->
   <div id="tab-notice" class="section">
     <div class="card admin-area">
       <div class="card-title">
@@ -896,9 +910,11 @@
           <div>
             <label>Target Audience</label>
             <select id="notice-target" required>
-              <option value="All Batches">All Batches</option>
+              <option value="All Batches">All Batches (Students)</option>
               <option value="Batch A">Batch A Only</option>
               <option value="Batch B">Batch B Only</option>
+              <option value="Faculty Only">👔 Faculty & Officials Only</option>
+              <option value="Everyone">🌐 Entire Academy (Students + Faculty)</option>
             </select>
           </div>
           <div>
@@ -916,9 +932,11 @@
           <textarea id="notice-body" rows="3" placeholder="Type announcement details here..." required></textarea>
         </div>
         <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
-          <button type="submit" class="btn-submit">📢 Publish to Live Notice Board</button>
-          <button type="button" class="btn-submit" style="background: #25D366; color: white;" onclick="broadcastToWhatsApp()">💬 Send via WhatsApp</button>
-          <button type="button" class="btn-submit" style="background: #0284c7; color: white;" onclick="broadcastToSMS()">📱 Send via Default SMS</button>
+          <button type="submit" class="btn-submit">📢 Publish Live</button>
+          <button type="button" class="btn-submit" style="background: #25D366; color: white;" onclick="broadcastToWhatsApp()">💬 WhatsApp Students</button>
+          <button type="button" class="btn-submit" style="background: #15803d; color: white;" onclick="notifyAllFacultyWhatsApp()">👔 WhatsApp Faculty</button>
+          <button type="button" class="btn-submit" style="background: #0284c7; color: white;" onclick="broadcastToSMS()">📱 SMS Students</button>
+          <button type="button" class="btn-submit" style="background: #0369a1; color: white;" onclick="notifyAllFacultySMS()">📱 SMS Faculty</button>
         </div>
       </form>
     </div>
@@ -932,7 +950,7 @@
     </div>
   </div>
 
-  <!-- SEGMENT 5: BATCHES & ROSTER -->
+  <!-- SEGMENT 5: BATCHES & ROSTER (STUDENTS + DOB) -->
   <div id="tab-roster" class="section">
     <div class="card admin-area">
       <div class="card-title">Enroll New Student</div>
@@ -952,6 +970,10 @@
           <div>
             <label>Phone Number</label>
             <input type="tel" id="rst-phone" placeholder="10-digit number" required>
+          </div>
+          <div>
+            <label>Date of Birth (DOB)</label>
+            <input type="date" id="rst-dob" required>
           </div>
           <div>
             <label>Admission Date</label>
@@ -987,7 +1009,7 @@
       </div>
 
       <div class="filter-row no-print">
-        <input type="text" class="live-search-input" id="search-roster" placeholder="🔍 Search by name or phone..." onkeyup="renderRosterTable()">
+        <input type="text" class="live-search-input" id="search-roster" placeholder="🔍 Search by name, phone or DOB..." onkeyup="renderRosterTable()">
       </div>
 
       <div class="table-responsive">
@@ -997,6 +1019,7 @@
               <th>Batch</th>
               <th>Student Name</th>
               <th>Phone</th>
+              <th>Date of Birth</th>
               <th>Medium</th>
               <th>Admission Date</th>
               <th>Status</th>
@@ -1005,6 +1028,83 @@
             </tr>
           </thead>
           <tbody id="roster-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGMENT 7: FACULTY REGISTRY & LOGS (OFFICIAL ONLY) -->
+  <div id="tab-faculty" class="section">
+    <div class="card admin-area">
+      <div class="card-title">
+        <span>👔 Register Authorized Official / Faculty</span>
+        <button class="btn-secondary" onclick="notifyFacultyOfChange('Manual update alert broadcast to all faculty members.')">📢 Broadcast Alert to All Faculty</button>
+      </div>
+      <form onsubmit="saveFaculty(event)">
+        <div class="form-grid">
+          <div>
+            <label>Faculty / Official Name</label>
+            <input type="text" id="fac-name" placeholder="Full name" required>
+          </div>
+          <div>
+            <label>Designation / Role</label>
+            <input type="text" id="fac-role" placeholder="e.g. Senior Faculty / Academic Head" required>
+          </div>
+          <div>
+            <label>Mobile Number (For Login & Alerts)</label>
+            <input type="tel" id="fac-phone" placeholder="10-digit mobile number" required>
+          </div>
+          <div>
+            <label>Date of Birth (DOB)</label>
+            <input type="date" id="fac-dob" required>
+          </div>
+          <div>
+            <label>Subject Specialization</label>
+            <input type="text" id="fac-subject" placeholder="e.g. Mathematics / General Studies" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Register Faculty Member</button>
+      </form>
+    </div>
+
+    <div class="card admin-area">
+      <div class="card-title">
+        <span>👔 Faculty & Official Directory</span>
+        <span id="faculty-count-badge" class="badge badge-active">0 Registered</span>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Designation</th>
+              <th>Mobile Number</th>
+              <th>Date of Birth</th>
+              <th>Specialization</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="faculty-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card admin-area">
+      <div class="card-title">
+        <span>📜 Official Entry & In-App Change Audit Logs</span>
+        <span class="badge" style="background:#e0e7ff; color:#3730a3;">Realtime Synced</span>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Event Type</th>
+              <th>Authorized Phone / User</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="audit-logs-table-body"></tbody>
         </table>
       </div>
     </div>
@@ -1034,38 +1134,20 @@ let attendance = [];
 let syllabus = [];
 let exams = [];
 let notices = [];
+let facultyList = [];
+let auditLogs = [];
 let adminPin = '1234';
 
 // MASTER EMPLOYER AUTHORIZATION CODE
 const MASTER_EMPLOYER_CODE = "ASP-ADMIN-2026";
 
-// Subject Color Tagging Helper
-function getSubjectBadge(subject) {
-  if (!subject) return '<span class="badge sub-default">-</span>';
-  const clean = subject.toUpperCase().trim();
-  let cssClass = 'sub-default';
-  if (clean.includes('ENGLISH')) cssClass = 'sub-english';
-  else if (clean.includes('MATH')) cssClass = 'sub-math';
-  else if (clean.includes('GI') || clean.includes('REASONING')) cssClass = 'sub-gi';
-  else if (clean.includes('HISTORY')) cssClass = 'sub-history';
-  else if (clean.includes('GEOGRAPHY')) cssClass = 'sub-geography';
-  else if (clean.includes('PHYSICAL')) cssClass = 'sub-physical-science';
-  else if (clean.includes('LIFE')) cssClass = 'sub-life-science';
-  else if (clean.includes('ECONOM')) cssClass = 'sub-economics';
-  else if (clean.includes('CONSTITUT')) cssClass = 'sub-constitution';
-  else if (clean.includes('GK')) cssClass = 'sub-gk';
-  else if (clean.includes('CA')) cssClass = 'sub-ca';
-  return `<span class="badge ${cssClass}">${subject}</span>`;
-}
+// Bday Greeting Message Text
+const BDAY_WISH_MESSAGE = "জীবন অতি মূল্যবান, জীবন অর্থবহ হোক, শুভ জন্মদিন I";
 
-// Performance Color Tint Helper
-function getScoreTintBadge(pct) {
-  const num = parseFloat(pct);
-  if (isNaN(num)) return `<span>-</span>`;
-  if (num >= 70) return `<span class="score-high">${num.toFixed(1)}% ★</span>`;
-  if (num >= 50) return `<span class="score-mid">${num.toFixed(1)}%</span>`;
-  return `<span class="score-low">${num.toFixed(1)}%</span>`;
-}
+// Authentication State
+let loggedInRole = null;
+let loggedInStudentObj = null;
+let loggedInFacultyPhone = null;
 
 // Realtime Listeners
 db.ref('settings/adminPin').on('value', snapshot => {
@@ -1076,15 +1158,17 @@ db.ref('settings/adminPin').on('value', snapshot => {
 db.ref('students').on('value', snapshot => {
   const data = snapshot.val();
   students = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
-  if (students.length === 0) {
-    db.ref('students').push({
-      batch: 'Batch A', name: 'Sample Student', phone: '9876543210',
-      password: '', date: '2026-09-01', medium: 'English', status: 'Active', comment: 'Specimen Student'
-    });
-  }
   updateDropdowns();
   renderRosterTable();
   if (loggedInRole === 'student') renderStudentProfile();
+  checkTodaysBirthdays();
+});
+
+db.ref('faculty').on('value', snapshot => {
+  const data = snapshot.val();
+  facultyList = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+  renderFacultyTable();
+  checkTodaysBirthdays();
 });
 
 db.ref('attendance').on('value', snapshot => {
@@ -1113,10 +1197,40 @@ db.ref('notices').on('value', snapshot => {
   renderNoticeBoard();
 });
 
-// Authentication State
-let loggedInRole = null;
-let loggedInStudentObj = null;
+db.ref('audit_logs').limitToLast(30).on('value', snapshot => {
+  const data = snapshot.val();
+  auditLogs = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
+  renderAuditLogs();
+});
 
+// Subject Helper
+function getSubjectBadge(subject) {
+  if (!subject) return '<span class="badge sub-default">-</span>';
+  const clean = subject.toUpperCase().trim();
+  let cssClass = 'sub-default';
+  if (clean.includes('ENGLISH')) cssClass = 'sub-english';
+  else if (clean.includes('MATH')) cssClass = 'sub-math';
+  else if (clean.includes('GI') || clean.includes('REASONING')) cssClass = 'sub-gi';
+  else if (clean.includes('HISTORY')) cssClass = 'sub-history';
+  else if (clean.includes('GEOGRAPHY')) cssClass = 'sub-geography';
+  else if (clean.includes('PHYSICAL')) cssClass = 'sub-physical-science';
+  else if (clean.includes('LIFE')) cssClass = 'sub-life-science';
+  else if (clean.includes('ECONOM')) cssClass = 'sub-economics';
+  else if (clean.includes('CONSTITUT')) cssClass = 'sub-constitution';
+  else if (clean.includes('GK')) cssClass = 'sub-gk';
+  else if (clean.includes('CA')) cssClass = 'sub-ca';
+  return `<span class="badge ${cssClass}">${subject}</span>`;
+}
+
+function getScoreTintBadge(pct) {
+  const num = parseFloat(pct);
+  if (isNaN(num)) return `<span>-</span>`;
+  if (num >= 70) return `<span class="score-high">${num.toFixed(1)}% ★</span>`;
+  if (num >= 50) return `<span class="score-mid">${num.toFixed(1)}%</span>`;
+  return `<span class="score-low">${num.toFixed(1)}%</span>`;
+}
+
+// Switching Login Mode
 function switchLoginRole(role) {
   document.querySelectorAll('.login-tab-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
@@ -1141,9 +1255,11 @@ function populateStudentLoginDropdown() {
   });
 }
 
+// 3-Step Official Login: Employer Code + Master PIN + Phone Number
 function loginOfficial() {
   const enteredCode = (document.getElementById('employer-code')?.value || '').trim().toUpperCase();
   const enteredPin = (document.getElementById('admin-pin')?.value || '').trim();
+  const enteredPhone = (document.getElementById('admin-phone')?.value || '').replace(/[^0-9]/g, '').trim();
 
   if (enteredCode !== MASTER_EMPLOYER_CODE) {
     alert('Access Denied: Invalid Employer / Faculty Authorization Code.');
@@ -1155,10 +1271,27 @@ function loginOfficial() {
     return;
   }
 
+  if (enteredPhone.length < 10) {
+    alert('Access Denied: Please provide your valid 10-digit registered phone number.');
+    return;
+  }
+
   loggedInRole = 'official';
   loggedInStudentObj = null;
+  loggedInFacultyPhone = enteredPhone;
+
+  // Log session to Firebase
+  const timestamp = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  db.ref('faculty_sessions').push({
+    phone: enteredPhone,
+    timestamp: timestamp,
+    timeMs: Date.now()
+  });
+
+  logAuditEvent('Faculty Login', enteredPhone, `Official entry verified for mobile ${enteredPhone}`);
+
   document.getElementById('login-modal').style.display = 'none';
-  document.getElementById('role-display').innerHTML = `👤 <b>Official (Faculty)</b>`;
+  document.getElementById('role-display').innerHTML = `👤 <b>Official (${enteredPhone.slice(-4)})</b>`;
   document.getElementById('btn-change-admin-pin').style.display = 'inline-block';
   applyPermissions();
 }
@@ -1189,12 +1322,17 @@ function loginStudent() {
 }
 
 function logout() {
+  if (loggedInRole === 'official' && loggedInFacultyPhone) {
+    logAuditEvent('Faculty Logout', loggedInFacultyPhone, `Official session ended.`);
+  }
   loggedInRole = null;
   loggedInStudentObj = null;
+  loggedInFacultyPhone = null;
   document.getElementById('login-modal').style.display = 'flex';
   const empField = document.getElementById('employer-code');
   if (empField) empField.value = '';
   document.getElementById('admin-pin').value = '';
+  document.getElementById('admin-phone').value = '';
   document.getElementById('login-student-cred').value = '';
   document.getElementById('role-display').innerHTML = '👤 Guest';
   document.getElementById('btn-change-admin-pin').style.display = 'none';
@@ -1209,17 +1347,23 @@ function applyPermissions() {
   const searchBox = document.getElementById('profile-search-container');
   const rosterNav = document.getElementById('nav-roster');
   const dockRoster = document.getElementById('dock-roster');
+  const facNav = document.getElementById('nav-faculty');
+  const dockFac = document.getElementById('dock-faculty');
   const studentPwdBtn = document.getElementById('btn-change-student-pwd');
   
   if (isOfficial) {
     searchBox.style.display = 'block';
     if (rosterNav) rosterNav.style.display = 'inline-block';
     if (dockRoster) dockRoster.style.display = 'flex';
+    if (facNav) facNav.style.display = 'inline-block';
+    if (dockFac) dockFac.style.display = 'flex';
     if (studentPwdBtn) studentPwdBtn.style.display = 'none';
   } else {
     searchBox.style.display = 'none';
     if (rosterNav) rosterNav.style.display = 'none';
     if (dockRoster) dockRoster.style.display = 'none';
+    if (facNav) facNav.style.display = 'none';
+    if (dockFac) dockFac.style.display = 'none';
     if (studentPwdBtn) studentPwdBtn.style.display = 'inline-block';
     showTab('tab-profile');
   }
@@ -1227,7 +1371,7 @@ function applyPermissions() {
 
 function showTab(tabId) {
   document.querySelectorAll('nav.top-nav button').forEach(b => b.classList.remove('active'));
-  const topBtn = Array.from(document.querySelectorAll('nav.top-nav button')).find(b => b.getAttribute('onclick').includes(tabId));
+  const topBtn = Array.from(document.querySelectorAll('nav.top-nav button')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (topBtn) topBtn.classList.add('active');
 
   document.querySelectorAll('.bottom-dock .dock-item').forEach(d => d.classList.remove('active'));
@@ -1293,6 +1437,7 @@ function processPasswordChange() {
     db.ref('settings/adminPin').set(newVal).then(() => {
       adminPin = newVal;
       alert('Master PIN updated successfully!');
+      notifyFacultyOfChange(`Official Master PIN was updated by ${loggedInFacultyPhone}`);
       closePasswordModal();
     });
   }
@@ -1347,14 +1492,82 @@ function filterExamStudents() {
   }
 }
 
-// Roster Table Render
+// Student Profile Render
+function renderStudentProfile() {
+  const name = loggedInRole === 'student' && loggedInStudentObj ? loggedInStudentObj.name : document.getElementById('profile-select').value;
+  const detailsDiv = document.getElementById('profile-details');
+  const emptyDiv = document.getElementById('profile-empty');
+  
+  if (!name) { detailsDiv.style.display = 'none'; emptyDiv.style.display = 'block'; return; }
+  const student = students.find(s => s.name === name);
+  if (!student) { detailsDiv.style.display = 'none'; emptyDiv.style.display = 'block'; return; }
+  
+  detailsDiv.style.display = 'block';
+  emptyDiv.style.display = 'none';
+  
+  document.getElementById('prof-name').textContent = student.name;
+  document.getElementById('prof-batch').textContent = student.batch;
+  document.getElementById('prof-med').textContent = student.medium;
+  document.getElementById('prof-dob').textContent = student.dob ? formatDisplayDate(student.dob) : 'Not Recorded';
+  document.getElementById('prof-status').innerHTML = `<span class="badge ${student.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${student.status}</span>`;
+  document.getElementById('prof-phone').textContent = student.phone;
+  document.getElementById('prof-adm').textContent = student.date;
+  document.getElementById('prof-notes').textContent = student.comment || 'None';
+
+  // Attendance
+  const attRecords = attendance.filter(a => a.name === name);
+  if (attRecords.length > 0) {
+    const presentCount = attRecords.filter(a => a.status === 'Present').length;
+    const attPct = Math.round((presentCount / attRecords.length) * 100);
+    document.getElementById('prof-attendance').textContent = `${attPct}% (${presentCount}/${attRecords.length})`;
+    document.getElementById('prof-att-bar').style.width = `${attPct}%`;
+    const offlinePresent = attRecords.filter(a => a.status === 'Present' && (a.mode === 'Offline' || !a.mode)).length;
+    const onlinePresent = attRecords.filter(a => a.status === 'Present' && a.mode === 'Online').length;
+    document.getElementById('prof-attendance-mode-breakdown').textContent = `Offline: ${offlinePresent} | Online: ${onlinePresent}`;
+  } else {
+    document.getElementById('prof-attendance').textContent = 'No records';
+    document.getElementById('prof-att-bar').style.width = '0%';
+    document.getElementById('prof-attendance-mode-breakdown').textContent = '-';
+  }
+
+  // Exams
+  const studExams = exams.filter(e => e.student === name);
+  const examBody = document.getElementById('prof-exams-body');
+  examBody.innerHTML = '';
+  if (studExams.length > 0) {
+    let totalPct = 0;
+    studExams.forEach(e => {
+      const pct = (e.marks / e.full) * 100;
+      totalPct += pct;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><b>${e.exam}</b></td>
+        <td>${getSubjectBadge(e.subject)}</td>
+        <td>${e.marks}</td>
+        <td>${e.full}</td>
+        <td>${pct.toFixed(1)}%</td>
+        <td>${getScoreTintBadge(pct)}</td>
+      `;
+      examBody.appendChild(tr);
+    });
+    const avg = (totalPct / studExams.length).toFixed(1);
+    document.getElementById('prof-exam-avg').textContent = `${avg}%`;
+    document.getElementById('prof-exam-bar').style.width = `${Math.min(100, avg)}%`;
+  } else {
+    examBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No exam records found</td></tr>';
+    document.getElementById('prof-exam-avg').textContent = 'N/A';
+    document.getElementById('prof-exam-bar').style.width = '0%';
+  }
+}
+
+// Student Roster Render (with DOB)
 function renderRosterTable() {
   const tbody = document.getElementById('roster-table-body');
   tbody.innerHTML = '';
   const q = (document.getElementById('search-roster')?.value || '').toLowerCase();
 
   const filtered = students.filter(s => 
-    s.name.toLowerCase().includes(q) || s.phone.includes(q) || s.batch.toLowerCase().includes(q)
+    s.name.toLowerCase().includes(q) || s.phone.includes(q) || s.batch.toLowerCase().includes(q) || (s.dob && s.dob.includes(q))
   );
 
   filtered.forEach(s => {
@@ -1363,18 +1576,56 @@ function renderRosterTable() {
       <td><b>${s.batch}</b></td>
       <td>${s.name}</td>
       <td>${s.phone}</td>
+      <td><span class="badge badge-bday">🎂 ${s.dob ? formatDisplayDate(s.dob) : '-'}</span></td>
       <td>${s.medium}</td>
       <td>${s.date}</td>
       <td><span class="badge ${s.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${s.status}</span></td>
       <td>${s.comment || '-'}</td>
-      <td class="admin-cell"><button class="btn-del" onclick="deleteStudent('${s.id}')">Delete</button></td>
+      <td class="admin-cell"><button class="btn-del" onclick="deleteStudent('${s.id}', '${s.name}')">Delete</button></td>
     `;
     tbody.appendChild(tr);
   });
   applyPermissions();
 }
 
-// Attendance Table Render (with Mode Badges and Filters)
+// Faculty Table Render
+function renderFacultyTable() {
+  const tbody = document.getElementById('faculty-table-body');
+  const countBadge = document.getElementById('faculty-count-badge');
+  tbody.innerHTML = '';
+  countBadge.textContent = `${facultyList.length} Registered`;
+
+  facultyList.forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${f.name}</b></td>
+      <td>${f.role}</td>
+      <td>📞 <b>${f.phone}</b></td>
+      <td><span class="badge badge-bday">🎂 ${f.dob ? formatDisplayDate(f.dob) : '-'}</span></td>
+      <td>${f.subject}</td>
+      <td><button class="btn-del" onclick="deleteFaculty('${f.id}', '${f.name}')">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Audit Logs Render
+function renderAuditLogs() {
+  const tbody = document.getElementById('audit-logs-table-body');
+  tbody.innerHTML = '';
+  auditLogs.forEach(log => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><small style="color:var(--muted);">${log.timestamp}</small></td>
+      <td><span class="badge" style="background:#e0f2fe; color:#0369a1;">${log.event}</span></td>
+      <td><b>${log.actor}</b></td>
+      <td>${log.details}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Attendance Table Render
 function renderAttendanceTable() {
   const filterBatch = document.getElementById('filter-att-batch').value;
   const filterMode = document.getElementById('filter-att-mode').value;
@@ -1473,7 +1724,7 @@ function renderNoticeBoard() {
 
   let visibleNotices = notices;
   if (loggedInRole === 'student' && loggedInStudentObj) {
-    visibleNotices = notices.filter(n => n.target === 'All Batches' || n.target === loggedInStudentObj.batch);
+    visibleNotices = notices.filter(n => n.target === 'All Batches' || n.target === loggedInStudentObj.batch || n.target === 'Everyone');
   }
 
   countBadge.textContent = `${visibleNotices.length} Notices`;
@@ -1505,138 +1756,217 @@ function renderNoticeBoard() {
   }).join('');
 }
 
-// Student Profile Render with Breakdown
-function renderStudentProfile() {
-  const name = loggedInRole === 'student' && loggedInStudentObj ? loggedInStudentObj.name : document.getElementById('profile-select').value;
-  const detailsDiv = document.getElementById('profile-details');
-  const emptyDiv = document.getElementById('profile-empty');
-  
-  if (!name) { detailsDiv.style.display = 'none'; emptyDiv.style.display = 'block'; return; }
-  const student = students.find(s => s.name === name);
-  if (!student) { detailsDiv.style.display = 'none'; emptyDiv.style.display = 'block'; return; }
-  
-  detailsDiv.style.display = 'block';
-  emptyDiv.style.display = 'none';
-  
-  document.getElementById('prof-name').textContent = student.name;
-  document.getElementById('prof-batch').textContent = student.batch;
-  document.getElementById('prof-med').textContent = student.medium;
-  document.getElementById('prof-status').innerHTML = `<span class="badge ${student.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${student.status}</span>`;
-  document.getElementById('prof-phone').textContent = student.phone;
-  document.getElementById('prof-adm').textContent = student.date;
-  document.getElementById('prof-notes').textContent = student.comment || 'None';
+// Helper: Format Date for Display
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return '-';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return dateStr;
+}
 
-  // Attendance Calculations
-  const attRecords = attendance.filter(a => a.name === name);
-  if (attRecords.length > 0) {
-    const presentCount = attRecords.filter(a => a.status === 'Present').length;
-    const attPct = Math.round((presentCount / attRecords.length) * 100);
-    document.getElementById('prof-attendance').textContent = `${attPct}% (${presentCount}/${attRecords.length})`;
-    document.getElementById('prof-att-bar').style.width = `${attPct}%`;
+// 🎂 AUTOMATED 10:00 AM BIRTHDAY ENGINE
+function checkTodaysBirthdays() {
+  const now = new Date();
+  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const currentDay = String(now.getDate()).padStart(2, '0');
+  const matchSuffix = `-${currentMonth}-${currentDay}`;
+
+  const studentCelebrants = students.filter(s => s.dob && s.dob.endsWith(matchSuffix));
+  const facultyCelebrants = facultyList.filter(f => f.dob && f.dob.endsWith(matchSuffix));
+  const allCelebrants = [
+    ...studentCelebrants.map(s => ({ ...s, type: 'Student' })),
+    ...facultyCelebrants.map(f => ({ ...f, type: 'Faculty' }))
+  ];
+
+  const banner = document.getElementById('birthday-banner-container');
+  if (allCelebrants.length > 0) {
+    banner.style.display = 'block';
+    banner.innerHTML = `
+      <div class="bday-banner">
+        <div>
+          <span style="font-size: 1.25rem;">🎉 🎂</span>
+          <b style="color: #9d174d; margin-left: 0.3rem;">Today's Birthday Celebrations:</b>
+          <span style="color: #831843; margin-left: 0.4rem;">${allCelebrants.map(c => `<b>${c.name}</b> (${c.type})`).join(', ')}</span>
+          <div style="font-size: 0.85rem; color: #be185d; margin-top: 0.25rem; font-style: italic;">
+            "${BDAY_WISH_MESSAGE}"
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          ${allCelebrants.map(c => `
+            <button class="btn-submit" style="background:#db2777; font-size:0.75rem; padding: 0.4rem 0.75rem;" onclick="sendPersonalBirthdayWish('${c.phone}', '${c.name}')">
+              📲 Wish ${c.name}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    // Automated 10:00 AM Trigger Check
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const todayKey = `bday_sent_${now.toISOString().split('T')[0]}`;
     
-    // Mode Breakdown
-    const offlinePresent = attRecords.filter(a => a.status === 'Present' && (a.mode === 'Offline' || !a.mode)).length;
-    const onlinePresent = attRecords.filter(a => a.status === 'Present' && a.mode === 'Online').length;
-    document.getElementById('prof-attendance-mode-breakdown').textContent = `Offline: ${offlinePresent} | Online: ${onlinePresent}`;
+    // If it is 10:00 AM or later and not yet triggered today:
+    if (hours >= 10 && !localStorage.getItem(todayKey)) {
+      localStorage.setItem(todayKey, 'true');
+      allCelebrants.forEach(c => {
+        const phone = c.phone.replace(/[^0-9]/g, '');
+        if (phone.length >= 10) {
+          logAuditEvent('Birthday Greeting Automated', 'System', `Automated 10:00 AM Birthday Wish triggered for ${c.name} (${phone})`);
+        }
+      });
+    }
   } else {
-    document.getElementById('prof-attendance').textContent = 'No records';
-    document.getElementById('prof-att-bar').style.width = '0%';
-    document.getElementById('prof-attendance-mode-breakdown').textContent = '-';
-  }
-
-  // Exams Calculations
-  const studExams = exams.filter(e => e.student === name);
-  const examBody = document.getElementById('prof-exams-body');
-  examBody.innerHTML = '';
-  if (studExams.length > 0) {
-    let totalPct = 0;
-    studExams.forEach(e => {
-      const pct = (e.marks / e.full) * 100;
-      totalPct += pct;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><b>${e.exam}</b></td>
-        <td>${getSubjectBadge(e.subject)}</td>
-        <td>${e.marks}</td>
-        <td>${e.full}</td>
-        <td>${pct.toFixed(1)}%</td>
-        <td>${getScoreTintBadge(pct)}</td>
-      `;
-      examBody.appendChild(tr);
-    });
-    const avg = (totalPct / studExams.length).toFixed(1);
-    document.getElementById('prof-exam-avg').textContent = `${avg}%`;
-    document.getElementById('prof-exam-bar').style.width = `${Math.min(100, avg)}%`;
-  } else {
-    examBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No exam records found</td></tr>';
-    document.getElementById('prof-exam-avg').textContent = 'N/A';
-    document.getElementById('prof-exam-bar').style.width = '0%';
+    banner.style.display = 'none';
   }
 }
 
-// Cloud Write Actions
+function sendPersonalBirthdayWish(phone, name) {
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const greeting = `প্রিয় ${name},\n\n${BDAY_WISH_MESSAGE}\n\n- Aspiration Centre`;
+  window.open(`https://api.whatsapp.com/send?phone=${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}&text=${encodeURIComponent(greeting)}`, '_blank');
+}
+
+// In-App Change & Audit Logger
+function logAuditEvent(event, actor, details) {
+  const timestamp = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  db.ref('audit_logs').push({
+    event: event,
+    actor: actor,
+    details: details,
+    timestamp: timestamp,
+    timeMs: Date.now()
+  });
+}
+
+// In-App Change Faculty Broadcast
+function notifyFacultyOfChange(changeDescription) {
+  const activeFaculty = facultyList.filter(f => f.phone);
+  if (activeFaculty.length === 0) {
+    alert('Notice logged. To broadcast WhatsApp/SMS to faculty, register faculty phone numbers in the Faculty Registry tab.');
+    return;
+  }
+  const msg = `📢 *ASPIRATION CENTRE - PORTAL UPDATE ALERT*\n\nAn update was made:\n${changeDescription}\n\nTime: ${new Date().toLocaleTimeString()}\nActor: ${loggedInFacultyPhone || 'Official'}`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// Save Student with DOB
 function saveStudent(e) {
   e.preventDefault();
+  const name = document.getElementById('rst-name').value.trim();
+  const phone = document.getElementById('rst-phone').value.trim();
+  const dob = document.getElementById('rst-dob').value;
+  
   db.ref('students').push({
-    name: document.getElementById('rst-name').value.trim(),
+    name: name,
     batch: document.getElementById('rst-batch').value,
-    phone: document.getElementById('rst-phone').value.trim(),
+    phone: phone,
+    dob: dob,
     password: '',
     date: document.getElementById('rst-date').value,
     medium: document.getElementById('rst-med').value,
     status: document.getElementById('rst-status').value,
     comment: document.getElementById('rst-comment').value.trim()
+  }).then(() => {
+    logAuditEvent('Student Enrolled', loggedInFacultyPhone || 'Official', `Enrolled ${name}, Mobile: ${phone}, DOB: ${dob}`);
+    notifyFacultyOfChange(`New Student Enrolled: ${name} (Batch: ${document.getElementById('rst-batch').value})`);
+    e.target.reset();
+    alert('Student registered to cloud!');
   });
-  e.target.reset();
-  alert('Student registered to cloud!');
 }
 
+// Save Faculty with DOB and Phone
+function saveFaculty(e) {
+  e.preventDefault();
+  const name = document.getElementById('fac-name').value.trim();
+  const phone = document.getElementById('fac-phone').value.replace(/[^0-9]/g, '').trim();
+  const role = document.getElementById('fac-role').value.trim();
+  const dob = document.getElementById('fac-dob').value;
+  const subject = document.getElementById('fac-subject').value.trim();
+
+  db.ref('faculty').push({
+    name: name,
+    phone: phone,
+    role: role,
+    dob: dob,
+    subject: subject,
+    dateAdded: new Date().toISOString().split('T')[0]
+  }).then(() => {
+    logAuditEvent('Faculty Registered', loggedInFacultyPhone || 'Official', `Registered Faculty ${name}, Mobile: ${phone}, Role: ${role}`);
+    e.target.reset();
+    alert('Official / Faculty member registered successfully!');
+  });
+}
+
+// Save Attendance
 function saveAttendance(e) {
   e.preventDefault();
   const dateVal = document.getElementById('att-date').value;
   const d = new Date(dateVal);
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const monthStr = `${monthNames[d.getMonth()]}-${d.getFullYear()}`;
+  const student = document.getElementById('att-student').value;
+  const mode = document.getElementById('att-mode').value || 'Offline';
+  const status = document.getElementById('att-status').value;
   
   db.ref('attendance').push({
     date: dateVal,
     batch: document.getElementById('att-batch').value,
-    name: document.getElementById('att-student').value,
-    mode: document.getElementById('att-mode').value || 'Offline',
-    status: document.getElementById('att-status').value,
+    name: student,
+    mode: mode,
+    status: status,
     month: monthStr
+  }).then(() => {
+    logAuditEvent('Attendance Marked', loggedInFacultyPhone || 'Official', `${student} marked ${status} (${mode}) on ${dateVal}`);
+    alert('Attendance recorded and synced!');
   });
-  alert('Attendance recorded and synced!');
 }
 
+// Save Syllabus
 function saveSyllabus(e) {
   e.preventDefault();
+  const subject = document.getElementById('syl-subject').value;
+  const topic = document.getElementById('syl-topic').value.trim();
+  const batch = document.getElementById('syl-batch').value;
+
   db.ref('syllabus').push({
     date: document.getElementById('syl-date').value,
-    batch: document.getElementById('syl-batch').value,
-    subject: document.getElementById('syl-subject').value,
-    topic: document.getElementById('syl-topic').value.trim(),
+    batch: batch,
+    subject: subject,
+    topic: topic,
     status: document.getElementById('syl-status').value,
     notes: document.getElementById('syl-notes').value.trim()
+  }).then(() => {
+    logAuditEvent('Syllabus Updated', loggedInFacultyPhone || 'Official', `Updated ${subject} (${batch}): ${topic}`);
+    notifyFacultyOfChange(`Syllabus Logged: ${subject} (${batch}) - Topic: "${topic}"`);
+    e.target.reset();
+    alert('Syllabus update synced!');
   });
-  e.target.reset();
-  alert('Syllabus update synced!');
 }
 
+// Save Exam Mark
 function saveExam(e) {
   e.preventDefault();
+  const exam = document.getElementById('exam-name').value.trim();
+  const student = document.getElementById('exam-student').value;
+  const marks = parseFloat(document.getElementById('exam-obtained').value);
+  const full = parseFloat(document.getElementById('exam-full').value);
+
   db.ref('exams').push({
-    exam: document.getElementById('exam-name').value.trim(),
+    exam: exam,
     batch: document.getElementById('exam-batch').value,
     subject: document.getElementById('exam-subject').value,
-    student: document.getElementById('exam-student').value,
-    full: parseFloat(document.getElementById('exam-full').value),
-    marks: parseFloat(document.getElementById('exam-obtained').value)
+    student: student,
+    full: full,
+    marks: marks
+  }).then(() => {
+    logAuditEvent('Exam Mark Added', loggedInFacultyPhone || 'Official', `${student} scored ${marks}/${full} in ${exam}`);
+    e.target.reset();
+    alert('Exam score synced!');
   });
-  e.target.reset();
-  alert('Exam score synced!');
 }
 
+// Publish Notice
 function publishNotice(e) {
   e.preventDefault();
   const title = document.getElementById('notice-title').value.trim();
@@ -1653,9 +1983,32 @@ function publishNotice(e) {
     date: dateStr,
     timestamp: Date.now()
   }).then(() => {
-    alert('Notice published live to all student devices!');
+    logAuditEvent('Notice Published', loggedInFacultyPhone || 'Official', `Notice: "${title}" (Target: ${target})`);
+    alert('Notice published live!');
     e.target.reset();
   });
+}
+
+// Faculty Notification Triggers
+function notifyAllFacultyWhatsApp() {
+  const title = document.getElementById('notice-title')?.value.trim();
+  const body = document.getElementById('notice-body')?.value.trim();
+  if (!title || !body) { alert('Please enter Notice Headline and Content first.'); return; }
+
+  const msg = `👔 *OFFICIAL FACULTY NOTICE: ${title}*\n\n${body}\n\n- Aspiration Centre Management`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function notifyAllFacultySMS() {
+  const title = document.getElementById('notice-title')?.value.trim();
+  const body = document.getElementById('notice-body')?.value.trim();
+  if (!title || !body) { alert('Please enter Notice Headline and Content first.'); return; }
+
+  const phones = facultyList.map(f => f.phone.replace(/[^0-9]/g, '')).filter(p => p.length >= 10);
+  if (phones.length === 0) { alert('No registered faculty phone numbers found.'); return; }
+
+  const msg = `FACULTY NOTICE: ${title} - ${body}`;
+  window.open(`sms:${phones.join(',')}?body=${encodeURIComponent(msg)}`, '_blank');
 }
 
 function broadcastToWhatsApp() {
@@ -1665,8 +2018,7 @@ function broadcastToWhatsApp() {
   if (!title || !body) { alert('Please enter Notice Headline and Content first.'); return; }
 
   let recipients = students.filter(s => s.status === 'Active' && s.phone);
-  if (target !== 'All Batches') recipients = recipients.filter(s => s.batch === target);
-  if (recipients.length === 0) { alert('No active students found in ' + target); return; }
+  if (target !== 'All Batches' && target !== 'Everyone') recipients = recipients.filter(s => s.batch === target);
 
   const messageText = `📢 *NOTICE: ${title}*\n\n${body}\n\n- Aspiration Centre`;
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
@@ -1679,16 +2031,25 @@ function broadcastToSMS() {
   if (!title || !body) { alert('Please enter Notice Headline and Content first.'); return; }
 
   let recipients = students.filter(s => s.status === 'Active' && s.phone);
-  if (target !== 'All Batches') recipients = recipients.filter(s => s.batch === target);
-  if (recipients.length === 0) { alert('No active students found in ' + target); return; }
-
+  if (target !== 'All Batches' && target !== 'Everyone') recipients = recipients.filter(s => s.batch === target);
   const phones = recipients.map(s => s.phone.replace(/[^0-9]/g, '')).filter(p => p.length >= 10);
   const messageText = `NOTICE: ${title} - ${body}`;
   window.open(`sms:${phones.join(',')}?body=${encodeURIComponent(messageText)}`, '_blank');
 }
 
 // Delete Actions
-function deleteStudent(id) { if (confirm('Delete student?')) db.ref('students/' + id).remove(); }
+function deleteStudent(id, name) { 
+  if (confirm('Delete student record?')) {
+    db.ref('students/' + id).remove();
+    logAuditEvent('Student Removed', loggedInFacultyPhone || 'Official', `Removed ${name}`);
+  }
+}
+function deleteFaculty(id, name) {
+  if (confirm('Remove faculty member?')) {
+    db.ref('faculty/' + id).remove();
+    logAuditEvent('Faculty Removed', loggedInFacultyPhone || 'Official', `Removed ${name}`);
+  }
+}
 function deleteAttendance(id) { if (confirm('Delete attendance entry?')) db.ref('attendance/' + id).remove(); }
 function deleteSyllabus(id) { if (confirm('Delete syllabus entry?')) db.ref('syllabus/' + id).remove(); }
 function deleteExam(id) { if (confirm('Delete exam mark?')) db.ref('exams/' + id).remove(); }
@@ -1724,19 +2085,22 @@ function exportExamsCSV() {
 
 function exportRosterCSV() {
   if (students.length === 0) { alert('No students to export.'); return; }
-  let csv = 'Batch,Student Name,Phone,Medium,Admission Date,Status,Comments\n';
+  let csv = 'Batch,Student Name,Phone,Date of Birth,Medium,Admission Date,Status,Comments\n';
   students.forEach(s => {
-    csv += `"${s.batch}","${s.name}","${s.phone}","${s.medium}","${s.date}","${s.status}","${s.comment || ''}"\n`;
+    csv += `"${s.batch}","${s.name}","${s.phone}","${s.dob || ''}","${s.medium}","${s.date}","${s.status}","${s.comment || ''}"\n`;
   });
   downloadCSV(csv, 'Students_Roster.csv');
 }
 
-// Initial dates
+// Initial default dates
 const today = new Date().toISOString().split('T')[0];
 document.getElementById('att-date').value = today;
 document.getElementById('syl-date').value = today;
 document.getElementById('rst-date').value = today;
+
+// Periodic Check every 60 seconds for 10:00 AM Birthday Automation
+setInterval(checkTodaysBirthdays, 60000);
 </script>
 
 </body>
-</html>
+  </html>
