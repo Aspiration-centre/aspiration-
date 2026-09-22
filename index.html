@@ -894,7 +894,7 @@
     </div>
   </div>
 
-  <!-- SEGMENT 6: NOTICE BOARD (NOTIFY STUDENTS & FACULTY) -->
+  <!-- SEGMENT 6: NOTICE BOARD (WITH SEND TO ALL BUTTON) -->
   <div id="tab-notice" class="section">
     <div class="card admin-area">
       <div class="card-title">
@@ -933,7 +933,7 @@
         </div>
         <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
           <button type="submit" class="btn-submit">📢 Publish Live</button>
-          <button type="button" class="btn-submit" style="background: #25D366; color: white;" onclick="broadcastToWhatsApp()">💬 WhatsApp Students</button>
+          <button type="button" class="btn-submit" style="background: #25D366; color: white;" onclick="sendNoticeToAllStudents()">📲 Send to all</button>
           <button type="button" class="btn-submit" style="background: #15803d; color: white;" onclick="notifyAllFacultyWhatsApp()">👔 WhatsApp Faculty</button>
           <button type="button" class="btn-submit" style="background: #0284c7; color: white;" onclick="broadcastToSMS()">📱 SMS Students</button>
           <button type="button" class="btn-submit" style="background: #0369a1; color: white;" onclick="notifyAllFacultySMS()">📱 SMS Faculty</button>
@@ -1141,6 +1141,9 @@ let adminPin = '1234';
 // MASTER EMPLOYER AUTHORIZATION CODE
 const MASTER_EMPLOYER_CODE = "ASP-ADMIN-2026";
 
+// Live Portal URL (Direct repository path)
+const PORTAL_URL = "https://aspiration-centre.github.io/aspiration-/";
+
 // Bday Greeting Message Text
 const BDAY_WISH_MESSAGE = "জীবন অতি মূল্যবান, জীবন অর্থবহ হোক, শুভ জন্মদিন I";
 
@@ -1255,7 +1258,7 @@ function populateStudentLoginDropdown() {
   });
 }
 
-// 3-Step Official Login: Employer Code + Master PIN + Phone Number
+// 3-Step Official Login
 function loginOfficial() {
   const enteredCode = (document.getElementById('employer-code')?.value || '').trim().toUpperCase();
   const enteredPin = (document.getElementById('admin-pin')?.value || '').trim();
@@ -1280,7 +1283,6 @@ function loginOfficial() {
   loggedInStudentObj = null;
   loggedInFacultyPhone = enteredPhone;
 
-  // Log session to Firebase
   const timestamp = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
   db.ref('faculty_sessions').push({
     phone: enteredPhone,
@@ -1803,16 +1805,14 @@ function checkTodaysBirthdays() {
 
     // Automated 10:00 AM Trigger Check
     const hours = now.getHours();
-    const minutes = now.getMinutes();
     const todayKey = `bday_sent_${now.toISOString().split('T')[0]}`;
     
-    // If it is 10:00 AM or later and not yet triggered today:
     if (hours >= 10 && !localStorage.getItem(todayKey)) {
       localStorage.setItem(todayKey, 'true');
       allCelebrants.forEach(c => {
         const phone = c.phone.replace(/[^0-9]/g, '');
         if (phone.length >= 10) {
-          logAuditEvent('Birthday Greeting Automated', 'System', `Automated 10:00 AM Birthday Wish triggered for ${c.name} (${phone})`);
+          logAuditEvent('Birthday Greeting Automated', 'System', `Automated 10:00 AM Birthday Wish recorded for ${c.name} (${phone})`);
         }
       });
     }
@@ -1843,7 +1843,6 @@ function logAuditEvent(event, actor, details) {
 function notifyFacultyOfChange(changeDescription) {
   const activeFaculty = facultyList.filter(f => f.phone);
   if (activeFaculty.length === 0) {
-    alert('Notice logged. To broadcast WhatsApp/SMS to faculty, register faculty phone numbers in the Faculty Registry tab.');
     return;
   }
   const msg = `📢 *ASPIRATION CENTRE - PORTAL UPDATE ALERT*\n\nAn update was made:\n${changeDescription}\n\nTime: ${new Date().toLocaleTimeString()}\nActor: ${loggedInFacultyPhone || 'Official'}`;
@@ -1989,13 +1988,35 @@ function publishNotice(e) {
   });
 }
 
+// 📲 SEND TO ALL REGISTERED STUDENTS
+function sendNoticeToAllStudents() {
+  const title = document.getElementById('notice-title')?.value.trim();
+  const body = document.getElementById('notice-body')?.value.trim();
+  
+  if (!title || !body) {
+    alert('Please enter both Notice Headline and Content first before sending.');
+    return;
+  }
+
+  const registeredStudents = students.filter(s => s.status === 'Active' && s.phone);
+  if (registeredStudents.length === 0) {
+    alert('No registered active students found in the roster.');
+    return;
+  }
+
+  const broadcastText = `📢 *NOTICE: ${title}*\n\n${body}\n\n📲 *Portal Access:* ${PORTAL_URL}\n\n- Aspiration Centre`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(broadcastText)}`, '_blank');
+  
+  logAuditEvent('Notice Sent to All', loggedInFacultyPhone || 'Official', `Notice "${title}" broadcast to all registered students`);
+}
+
 // Faculty Notification Triggers
 function notifyAllFacultyWhatsApp() {
   const title = document.getElementById('notice-title')?.value.trim();
   const body = document.getElementById('notice-body')?.value.trim();
   if (!title || !body) { alert('Please enter Notice Headline and Content first.'); return; }
 
-  const msg = `👔 *OFFICIAL FACULTY NOTICE: ${title}*\n\n${body}\n\n- Aspiration Centre Management`;
+  const msg = `👔 *OFFICIAL FACULTY NOTICE: ${title}*\n\n${body}\n\n📲 *Portal:* ${PORTAL_URL}\n\n- Aspiration Centre Management`;
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
@@ -2007,21 +2028,8 @@ function notifyAllFacultySMS() {
   const phones = facultyList.map(f => f.phone.replace(/[^0-9]/g, '')).filter(p => p.length >= 10);
   if (phones.length === 0) { alert('No registered faculty phone numbers found.'); return; }
 
-  const msg = `FACULTY NOTICE: ${title} - ${body}`;
+  const msg = `FACULTY NOTICE: ${title} - ${body} (Portal: ${PORTAL_URL})`;
   window.open(`sms:${phones.join(',')}?body=${encodeURIComponent(msg)}`, '_blank');
-}
-
-function broadcastToWhatsApp() {
-  const title = document.getElementById('notice-title').value.trim();
-  const body = document.getElementById('notice-body').value.trim();
-  const target = document.getElementById('notice-target').value;
-  if (!title || !body) { alert('Please enter Notice Headline and Content first.'); return; }
-
-  let recipients = students.filter(s => s.status === 'Active' && s.phone);
-  if (target !== 'All Batches' && target !== 'Everyone') recipients = recipients.filter(s => s.batch === target);
-
-  const messageText = `📢 *NOTICE: ${title}*\n\n${body}\n\n- Aspiration Centre`;
-  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
 }
 
 function broadcastToSMS() {
@@ -2098,9 +2106,9 @@ document.getElementById('att-date').value = today;
 document.getElementById('syl-date').value = today;
 document.getElementById('rst-date').value = today;
 
-// Periodic Check every 60 seconds for 10:00 AM Birthday Automation
+// Check every 60 seconds for 10:00 AM Birthday Automation
 setInterval(checkTodaysBirthdays, 60000);
 </script>
 
 </body>
-</html>
+  </html>
